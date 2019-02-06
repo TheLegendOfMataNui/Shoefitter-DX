@@ -35,18 +35,32 @@ namespace ShoefitterDX
 
             foreach (SAGESharp.OSI.OSIFile.FunctionInfo func in osi.Functions)
             {
-                System.Diagnostics.Debug.WriteLine("Graphing Function '" + func.Name + "'...");
-                SAGESharp.OSI.ControlFlow.SubroutineGraph graph = new SAGESharp.OSI.ControlFlow.SubroutineGraph(func.Instructions, func.BytecodeOffset);
+                //System.Diagnostics.Debug.WriteLine("Graphing Function '" + func.Name + "'...");
+                try
+                {
+                    SAGESharp.OSI.ControlFlow.SubroutineGraph graph = new SAGESharp.OSI.ControlFlow.SubroutineGraph(func.Instructions, func.BytecodeOffset);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Failed to graph function '" + func.Name + "'!");
+                }
             }
 
-            /*foreach (SAGESharp.OSI.OSIFile.ClassInfo cls in osi.Classes)
+            foreach (SAGESharp.OSI.OSIFile.ClassInfo cls in osi.Classes)
             {
                 foreach (SAGESharp.OSI.OSIFile.MethodInfo method in cls.Methods)
                 {
-                    System.Diagnostics.Debug.WriteLine("Graphing Method '" + cls.Name + "." + osi.Symbols[method.NameSymbol] + "'...");
-                    SAGESharp.OSI.ControlFlow.SubroutineGraph graph = new SAGESharp.OSI.ControlFlow.SubroutineGraph(method.Instructions, method.BytecodeOffset);
+                    //System.Diagnostics.Debug.WriteLine("Graphing Method '" + cls.Name + "." + osi.Symbols[method.NameSymbol] + "'...");
+                    try
+                    {
+                        SAGESharp.OSI.ControlFlow.SubroutineGraph graph = new SAGESharp.OSI.ControlFlow.SubroutineGraph(method.Instructions, method.BytecodeOffset);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Failed to graph method '" + cls.Name + "." + osi.Symbols[method.NameSymbol] + "'!");
+                    }
                 }
-            }*/
+            }
 
             OSIBrowser browser = new OSIBrowser();
             browser.LoadOSI(osi);
