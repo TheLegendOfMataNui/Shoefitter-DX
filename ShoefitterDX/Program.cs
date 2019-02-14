@@ -62,9 +62,12 @@ namespace ShoefitterDX
                 }
             }
 
-            OSIBrowser browser = new OSIBrowser();
-            browser.LoadOSI(osi);
-            Application.Run(browser);
+            //OSIBrowser browser = new OSIBrowser();
+            //browser.LoadOSI(osi);
+            //Application.Run(browser);
+
+            LSSInteractive IDE = new LSSInteractive();
+            Application.Run(IDE);
 
             Config.Write(INIFilename);
         }
