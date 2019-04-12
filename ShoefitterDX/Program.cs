@@ -43,9 +43,18 @@ namespace ShoefitterDX
 
             }
 
+            // Test OSI writing
+            /*using (System.IO.FileStream stream = new System.IO.FileStream(osiFilename, System.IO.FileMode.Open, System.IO.FileAccess.Write, System.IO.FileShare.None))
+            using (System.IO.BinaryWriter writer = new System.IO.BinaryWriter(stream))
+            {
+                osi.Write(writer);
+            }*/
+
+            // Shoefitter-DX Entrypoint
             //Application.Run(new Window());
 
-            foreach (SAGESharp.OSI.OSIFile.FunctionInfo func in osi.Functions)
+            // Test control flow analysis
+            /*foreach (SAGESharp.OSI.OSIFile.FunctionInfo func in osi.Functions)
             {
                 //System.Diagnostics.Debug.WriteLine("Graphing Function '" + func.Name + "'...");
                 try
@@ -72,7 +81,7 @@ namespace ShoefitterDX
                         System.Diagnostics.Debug.WriteLine("Failed to graph method '" + cls.Name + "." + osi.Symbols[method.NameSymbol] + "'!");
                     }
                 }
-            }
+            }*/
 
             /*OSIBrowser browser = new OSIBrowser();
             browser.LoadOSI(osi);
