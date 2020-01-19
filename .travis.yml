@@ -1,14 +1,25 @@
 language: bash
 os: windows
 env:
-  - MSBUILD_PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+  - >
+    MSBUILD_PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+    SEVENZIP_PATH="C:\Program Files\7-Zip"
 install:
   - choco install nuget.commandline
   - nuget restore ShoefitterDX.sln
 script:
-  - export PATH="$MSBUILD_PATH:$PATH"
+  - export PATH="$MSBUILD_PATH:$SEVENZIP_PATH:$PATH"
   - MSBuild.exe //p:Configuration=Release ShoefitterDX.sln
-# Build only in the master branch
-branches:
-  only:
-  - master
+  - |-
+    if [ $TRAVIS_TAG ]; then
+      pushd ShoefitterDX/bin/Release
+      7z.exe a -tzip ../../../ShoefitterDX.$TRAVIS_TAG.zip ShoefitterDX.exe* *dll
+      popd
+    fi
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key: $GITHUB_KEY
+  file: ShoefitterDX.$TRAVIS_TAG.zip
+  on:
+    tags: true
