@@ -1,0 +1,63 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using AvalonDock.Layout;
+using ShoefitterDX.Editors;
+
+namespace ShoefitterDX
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private Dictionary<object, EditorDocument> OpenDocuments { get; } = new Dictionary<object, EditorDocument>();
+
+        public Context Context { get; } = new Context();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            Context.ProjectDirectory = @"E:\Projects\Modding\Bionicle\My-Code\LOMN-Beta\";
+
+            LayoutAnchorablePane rightPane = new LayoutAnchorablePane();
+            rightPane.DockWidth = new GridLength(200);
+            rightPane.Children.Add(new LayoutAnchorable() { Content = new ToolWindows.DataBrowser(this.Context), Title = "Data Browser" });
+            DockingManager.Layout.RootPanel.Children.Add(rightPane);
+
+            ShowOrCreateDocument("test model editor", () => new EditorDocument(new ModelEditor()));
+        }
+
+        private void ShowOrCreateDocument(object key, Func<EditorDocument> constructor)
+        {
+            EditorDocument doc;
+            if (OpenDocuments.ContainsKey(key))
+            {
+                doc = OpenDocuments[key];
+            }
+            else
+            {
+                doc = constructor();
+                DockingManager.Layout.Descendents().OfType<LayoutDocumentPane>().First().Children.Add(doc);
+                OpenDocuments.Add(key, doc);
+                doc.Closed += (sender, args) => OpenDocuments.Remove(key);
+            }
+
+            doc.IsActive = true;
+            doc.IsSelected = true;
+        }
+    }
+}
