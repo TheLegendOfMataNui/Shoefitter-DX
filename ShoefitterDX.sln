@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoefitterDX", "ShoefitterDX\ShoefitterDX.csproj", "{F09DD53A-FF8A-4877-BD3B-3F0B6C767251}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4DC415C-340E-4465-BFD6-B0D4AF6B441C}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		.travis.yml = .travis.yml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShoefitterDX-WinForms", "ShoefitterDX-WinForms\ShoefitterDX-WinForms.csproj", "{F09DD53A-FF8A-4877-BD3B-3F0B6C767251}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
