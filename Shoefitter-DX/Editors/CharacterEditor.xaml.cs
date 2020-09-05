@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShoefitterDX.ToolWindows;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -14,15 +15,13 @@ using System.Windows.Shapes;
 namespace ShoefitterDX.Editors
 {
     /// <summary>
-    /// Interaction logic for ModelEditor.xaml
+    /// Interaction logic for CharacterEditor.xaml
     /// </summary>
-    public partial class ModelEditor : EditorBase
+    public partial class CharacterEditor : EditorBase
     {
-        public ModelEditor()
+        public CharacterEditor(DataBrowserItem item) : base(item)
         {
             InitializeComponent();
-
-            this.TabTitle = "Model Editor";
         }
     }
 }

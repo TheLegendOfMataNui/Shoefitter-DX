@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShoefitterDX.ToolWindows;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
@@ -13,6 +14,8 @@ namespace ShoefitterDX.Editors
     public abstract class EditorBase : UserControl, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public DataBrowserItem Item { get; }
 
         private bool _needsSave = false;
         public bool NeedsSave
@@ -56,6 +59,13 @@ namespace ShoefitterDX.Editors
                 this._tabToolTip = value;
                 this.RaisePropertyChanged(nameof(TabToolTip));
             }
+        }
+
+        public EditorBase(DataBrowserItem item)
+        {
+            this.Item = item;
+            this.TabTitle = item.Name;
+            this.TabToolTip = item.FullPath;
         }
 
         public virtual void Save()

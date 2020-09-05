@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using AvalonDock.Layout;
 using ShoefitterDX.Editors;
+using ShoefitterDX.ToolWindows;
 
 namespace ShoefitterDX
 {
@@ -26,6 +27,7 @@ namespace ShoefitterDX
         private Dictionary<object, EditorDocument> OpenDocuments { get; } = new Dictionary<object, EditorDocument>();
 
         public Context Context { get; } = new Context();
+        public DataBrowser DataBrowser { get; }
 
         public MainWindow()
         {
@@ -33,12 +35,21 @@ namespace ShoefitterDX
 
             Context.ProjectDirectory = @"E:\Projects\Modding\Bionicle\My-Code\LOMN-Beta\";
 
+            this.DataBrowser = new DataBrowser(this.Context);
+            this.DataBrowser.ItemDoubleClicked += DataBrowser_ItemDoubleClicked;
+
             LayoutAnchorablePane rightPane = new LayoutAnchorablePane();
             rightPane.DockWidth = new GridLength(200);
-            rightPane.Children.Add(new LayoutAnchorable() { Content = new ToolWindows.DataBrowser(this.Context), Title = "Data Browser" });
+            rightPane.Children.Add(new LayoutAnchorable() { Content = this.DataBrowser, Title = "Data Browser" });
             DockingManager.Layout.RootPanel.Children.Add(rightPane);
+        }
 
-            ShowOrCreateDocument("test model editor", () => new EditorDocument(new ModelEditor()));
+        private void DataBrowser_ItemDoubleClicked(object sender, DataBrowserItem e)
+        {
+            if (e.Type != null)
+            {
+                ShowOrCreateDocument(e.FullPath, () => new EditorDocument(Activator.CreateInstance(e.Type.EditorType, e) as EditorBase));
+            }
         }
 
         private void ShowOrCreateDocument(object key, Func<EditorDocument> constructor)

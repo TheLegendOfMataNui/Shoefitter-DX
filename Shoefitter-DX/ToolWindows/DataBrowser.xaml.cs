@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO;
 using System.ComponentModel;
 using System.Windows.Data;
+using System.Text.RegularExpressions;
 
 namespace ShoefitterDX.ToolWindows
 {
@@ -72,6 +73,28 @@ namespace ShoefitterDX.ToolWindows
             }
         }
 
+        private string _fullPath = "";
+        public string FullPath
+        {
+            get => this._fullPath;
+            set
+            {
+                this._fullPath = value;
+                this.RaisePropertyChanged(nameof(FullPath));
+            }
+        }
+
+        private FileType _type = null;
+        public FileType Type
+        {
+            get => this._type;
+            set
+            {
+                this._type = value;
+                this.RaisePropertyChanged(nameof(Type));
+            }
+        }
+
         public ObservableCollection<DataBrowserItem> Children { get; } = new ObservableCollection<DataBrowserItem>();
         public CollectionViewSource SortedChildren { get; }
 
@@ -98,6 +121,16 @@ namespace ShoefitterDX.ToolWindows
         private DataBrowserItem ProjectItem { get; } = new DataBrowserItem();
         public Context Context { get; }
 
+        private List<Regex> IgnoreExpressions { get; } = new List<Regex>
+        {
+            new Regex(@".*\\\..*", RegexOptions.Compiled),
+            new Regex(@"\\build\\?", RegexOptions.Compiled),
+            new Regex(@"\\native\\?", RegexOptions.Compiled),
+            new Regex(@"\\tools\\?", RegexOptions.Compiled)
+        };
+
+        public event EventHandler<DataBrowserItem> ItemDoubleClicked;
+
         public DataBrowser(Context context)
         {
             InitializeComponent();
@@ -117,12 +150,19 @@ namespace ShoefitterDX.ToolWindows
         {
             item.Name = Path.GetFileName(Path.TrimEndingDirectorySeparator(path));
             item.IsDirectory = isDirectory;
+            item.Type = FileTypes.DetermineType(path);
+            item.IconSource = item.Type?.IconSource;
+            item.FullPath = path;
 
             if (isDirectory)
             {
                 List<string> children = new List<string>();
                 foreach (string childPath in Directory.EnumerateFileSystemEntries(path))
                 {
+                    if (IgnoreExpressions.Any(expr => expr.IsMatch(childPath)))
+                    {
+                        continue;
+                    }
                     string name = Path.GetFileName(Path.TrimEndingDirectorySeparator(childPath));
                     children.Add(name);
                     DataBrowserItem existing = item.Children.FirstOrDefault(child => child.Name == name);
@@ -151,6 +191,18 @@ namespace ShoefitterDX.ToolWindows
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
             this.Refresh();
+        }
+
+        private void ItemTreeViewItem_MouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            if (e.Source is TreeViewItem treeItem && treeItem.Tag is DataBrowserItem item)
+            {
+                ItemDoubleClicked?.Invoke(this, item);
+                if (item.Type != null && item.Type.EditorType != null)
+                {
+                    e.Handled = true;
+                }
+            }
         }
     }
 }

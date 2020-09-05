@@ -6,7 +6,7 @@
         xmlns:avalondock="https://github.com/Dirkster99/AvalonDock"
         xmlns:local="clr-namespace:ShoefitterDX"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        Title="Shoefitter DX" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
         <DockingManager x:Name="DockingManager">
             
