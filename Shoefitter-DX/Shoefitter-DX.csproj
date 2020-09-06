@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>ShoefitterDX</RootNamespace>
     <UseWPF>true</UseWPF>
+    <StartupObject>ShoefitterDX.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,9 @@
     <PackageReference Include="Equ" Version="2.2.0" />
     <PackageReference Include="NUtils" Version="1.2.0" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct3D9" Version="4.2.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageReference Include="YamlDotNet" Version="8.0.0" />
   </ItemGroup>
@@ -25,6 +29,15 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="res\WorldPixelShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="res\WorldVertexShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

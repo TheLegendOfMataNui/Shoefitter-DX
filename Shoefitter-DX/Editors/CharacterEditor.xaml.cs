@@ -1,4 +1,6 @@
 ﻿using SAGESharp.IO.Binary;
+using SharpDX;
+using ShoefitterDX.Renderer;
 using ShoefitterDX.ToolWindows;
 using System;
 using System.Collections.Generic;
@@ -7,12 +9,6 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 
 namespace ShoefitterDX.Editors
 {
@@ -26,6 +22,8 @@ namespace ShoefitterDX.Editors
 
         private string AIInfoFilePath => Path.Combine(this.Item.FullPath, "AIInfo.slb");
         public SAGESharp.SLB.AIInfo AIInfoFile { get; }
+
+        private D3D11Mesh CylinderMesh;
 
         private static T ReadSLBFile<T>(string filename)
         {
@@ -65,7 +63,34 @@ namespace ShoefitterDX.Editors
             }
 
             InitializeComponent();
+
+            PreviewRenderer.CreateResources += PreviewRenderer_CreateResources;
+            PreviewRenderer.RenderContent += PreviewRenderer_RenderContent;
+            PreviewRenderer.DisposeResources += PreviewRenderer_DisposeResources;
         }
+
+        #region Preview Renderer
+        private void PreviewRenderer_CreateResources(object sender, EventArgs e)
+        {
+            this.CylinderMesh = D3D11Mesh.CreateCylinder(PreviewRenderer.Device, Vector3.UnitX * 0.5f, Vector3.UnitZ * 0.5f, Vector3.UnitY * 0.5f, new Vector4(0.1f, 0.8f, 0.9f, 1.0f));
+        }
+
+        private void PreviewRenderer_RenderContent(object sender, EventArgs e)
+        {
+            if (this.CylinderFile != null)
+            {
+                Vector3 center = ((Vector3)this.CylinderFile.Bounds.Max + (Vector3)this.CylinderFile.Bounds.Min) * 0.5f;
+                Vector3 size = (Vector3)this.CylinderFile.Bounds.Max - (Vector3)this.CylinderFile.Bounds.Min;
+                PreviewRenderer.RenderWorldMesh(this.CylinderMesh, new WorldInstanceConstants(Matrix.Scaling(size) * Matrix.Translation(center)));
+            }
+        }
+
+        private void PreviewRenderer_DisposeResources(object sender, EventArgs e)
+        {
+            this.CylinderMesh?.Dispose();
+            this.CylinderMesh = null;
+        }
+        #endregion
 
         public override void Save()
         {
