@@ -10,6 +10,21 @@
   <ItemGroup>
     <PackageReference Include="Dirkster.AvalonDock" Version="4.40.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.40.0" />
+    <PackageReference Include="Equ" Version="2.2.0" />
+    <PackageReference Include="NUtils" Version="1.2.0" />
+    <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <PackageReference Include="YamlDotNet" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SAGESharp">
+      <HintPath>..\..\SAGESharp\SAGESharp\bin\Debug\netstandard2.0\SAGESharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

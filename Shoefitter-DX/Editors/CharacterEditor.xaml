@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ShoefitterDX.Editors"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
@@ -15,12 +15,91 @@
         <TabControl Grid.Column="0">
             <TabItem Header="AI">
                 <!-- TODO: Implement! -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Flying" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding AIInfoFile.Flying}" />
+                    <TextBlock Grid.Row="1" Text="Range" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AIInfoFile.Range}" />
+                    <TextBlock Grid.Row="2" Text="Patrol Randomness" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AIInfoFile.PatrolRandomness}" />
+                    <TextBlock Grid.Row="3" Text="Idle Timer A" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding AIInfoFile.TimerValuesIdle.A}" />
+                    <TextBlock Grid.Row="4" Text="Idle Timer B" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding AIInfoFile.TimerValuesIdle.B}" />
+                    <TextBlock Grid.Row="5" Text="Patrol Timer A" />
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding AIInfoFile.TimerValuesPatrol.A}" />
+                    <TextBlock Grid.Row="6" Text="Patrol Timer B" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding AIInfoFile.TimerValuesPatrol.B}" />
+                    <TextBlock Grid.Row="7" Text="Toughness" />
+                    <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding AIInfoFile.Toughness}" />
+                    <TextBlock Grid.Row="8" Text="Attack Type" VerticalAlignment="Center" />
+                    <ComboBox Grid.Row="8" Grid.Column="1" SelectedValue="{Binding AIInfoFile.AttackType, Converter={StaticResource AttackTypeEnumConverter}}" SelectedValuePath="Content">
+                        
+                        <ComboBoxItem Content="Melee" />
+                        <ComboBoxItem Content="Kamikaze" />
+                        <ComboBoxItem Content="Jump" />
+                        <ComboBoxItem Content="Ranged" />
+                        <ComboBoxItem Content="MoveToAttack" />
+                        <ComboBoxItem Content="Miniboss" />
+                    </ComboBox>
+                    <TextBlock Grid.Row="9" Text="Is Benign" />
+                    <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding AIInfoFile.Benign}" />
+                    <TextBlock Grid.Row="10" Text="Projectile Sprite Filename" />
+                    <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding AIInfoFile.ProjectileSprite}" />
+                </Grid>
             </TabItem>
             <TabItem Header="Animation Events">
                 <!-- TODO: Implement! -->
             </TabItem>
             <TabItem Header="Cylinder">
-                <!-- TODO: Implement! -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Margin="3" Orientation="Horizontal">
+                        <TextBlock Text="ID:" />
+                        <TextBox Text="{Binding CylinderFile.ID, Converter={StaticResource IdentifierConverter}}" Width="40" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="3">
+                        <TextBlock Text="Min" Margin="0 0 8 0" />
+                        <TextBlock Text="X:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Min.X}" Width="40" Margin="0 0 8 0" />
+                        <TextBlock Text="Y:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Min.Y}" Width="40" Margin="0 0 8 0" />
+                        <TextBlock Text="Z:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Min.Z}" Width="40" Margin="0 0 8 0" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="3">
+                        <TextBlock Text="Max" Margin="0 0 8 0" />
+                        <TextBlock Text="X:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Max.X}" Width="40" Margin="0 0 8 0" />
+                        <TextBlock Text="Y:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Max.Y}" Width="40" Margin="0 0 8 0" />
+                        <TextBlock Text="Z:" />
+                        <TextBox Text="{Binding CylinderFile.Bounds.Max.Z}" Width="40" Margin="0 0 8 0" />
+                    </StackPanel>
+                </Grid>
             </TabItem>
             <TabItem Header="Skeleton">
                 <!-- TODO: Implement! -->

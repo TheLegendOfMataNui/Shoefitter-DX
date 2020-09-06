@@ -2,8 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ShoefitterDX"
+             xmlns:slb="clr-namespace:SAGESharp.SLB;assembly=SAGESharp"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <SolidColorBrush x:Key="Accent" Color="#BB4433" />
+        <local:IdentifierConverter x:Key="IdentifierConverter" />
+        <local:EnumConverter x:Key="AttackTypeEnumConverter" EnumType="{x:Type slb:AttackType}" />
+
+        <SolidColorBrush x:Key="Accent" Color="#EE7766" />
     </Application.Resources>
 </Application>

@@ -3,13 +3,26 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:avalondock="https://github.com/Dirkster99/AvalonDock"
         xmlns:local="clr-namespace:ShoefitterDX"
+        xmlns:editors="clr-namespace:ShoefitterDX.Editors"
         mc:Ignorable="d"
         Title="Shoefitter DX" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
         <DockingManager x:Name="DockingManager">
-            
+            <DockingManager.DocumentHeaderTemplate>
+                <DataTemplate DataType="{x:Type editors:EditorDocument}">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding Editor.TabToolTip}">
+                        <Image Source="{Binding Editor.TabIconSource}" Margin="0,0,4,0"/>
+                        <TextBlock Text="{Binding Editor.TabTitle}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="ModifiedIndicator" Text="*" Visibility="Collapsed"/>
+                    </StackPanel>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Path=Editor.NeedsSave}" Value="True">
+                            <Setter TargetName="ModifiedIndicator" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </DockingManager.DocumentHeaderTemplate>
         </DockingManager>
     </Grid>
 </Window>
