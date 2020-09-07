@@ -11,9 +11,10 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 Position : SV_Position;
+	float3 WorldPosition : TEXCOORD1;
 	float3 Normal : NORMAL0;
-	float2 UV : TEXCOORD0;
 	float4 Color : COLOR0;
+	float2 UV : TEXCOORD0;
 };
 
 cbuffer FrameConstants : register(b0)
@@ -22,6 +23,8 @@ cbuffer FrameConstants : register(b0)
 	float4x4 ProjectionMatrix;
 	float2 ViewportPosition;
 	float2 ViewportSize;
+	float3 CameraPosition;
+	float _Padding;
 };
 
 cbuffer WorldInstanceConstants : register(b1)

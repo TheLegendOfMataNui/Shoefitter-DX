@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,15 +41,37 @@ namespace ShoefitterDX.Renderer
         public Matrix ProjectionMatrix;
         public Vector2 ViewportPosition;
         public Vector2 ViewportSize;
+        public Vector3 CameraPosition;
+        private float _Padding;
+    }
+
+    public struct SolidInstanceConstants
+    {
+        public Matrix ModelMatrix;
+
+        public SolidInstanceConstants(Matrix modelMatrix)
+        {
+            this.ModelMatrix = modelMatrix;
+        }
     }
 
     public struct WorldInstanceConstants
     {
         public Matrix ModelMatrix;
+        public Vector4 Color;
+        public Vector3 SpecularColor;
+        public float SpecularExponent;
+        public Vector3 EmissiveColor;
+        private float _Padding;
 
-        public WorldInstanceConstants(Matrix modelMatrix)
+        public WorldInstanceConstants(Matrix modelMatrix, Vector4 color, Vector3 specularColor, float specularExponent, Vector3 emissiveColor)
         {
             this.ModelMatrix = modelMatrix;
+            this.Color = color;
+            this.SpecularColor = specularColor;
+            this.SpecularExponent = specularExponent;
+            this.EmissiveColor = emissiveColor;
+            this._Padding = 0.0f;
         }
     }
 
@@ -72,11 +95,13 @@ namespace ShoefitterDX.Renderer
 
         public VertexShader WorldVertexShader { get; private set; }
         public PixelShader WorldPixelShader { get; private set; }
+        public PixelShader SolidPixelShader { get; private set; }
         public InputLayout WorldInputLayout { get; private set; }
         public RasterizerState DefaultRasterizerState { get; private set; }
         public BlendState AlphaBlendState { get; private set; }
         private FrameConstants FrameConstants;
         public SharpDX.Direct3D11.Buffer FrameConstantBuffer { get; private set; }
+        public SharpDX.Direct3D11.Buffer SolidInstanceConstantBuffer { get; private set; }
         public SharpDX.Direct3D11.Buffer WorldInstanceConstantBuffer { get; private set; }
 
         private bool _isFirstPerson = false;
@@ -126,17 +151,19 @@ namespace ShoefitterDX.Renderer
 
             WorldVertexShader = new VertexShader(Device, ResourceCache.Resources["WorldVertexShader.hlsl"]);
             WorldPixelShader = new PixelShader(Device, ResourceCache.Resources["WorldPixelShader.hlsl"]);
+            SolidPixelShader = new PixelShader(Device, ResourceCache.Resources["SolidPixelShader.hlsl"]);
             WorldInputLayout = new InputLayout(Device, ResourceCache.Resources["WorldVertexShader.hlsl"], PreviewVertex.InputElements);
 
             FrameConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, SharpDX.Utilities.SizeOf<FrameConstants>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-            WorldInstanceConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, SharpDX.Utilities.SizeOf<WorldInstanceConstants>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
+            SolidInstanceConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, SharpDX.Utilities.SizeOf<SolidInstanceConstants>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
+            WorldInstanceConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, Utilities.SizeOf<WorldInstanceConstants>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
 
             DefaultRasterizerState = new RasterizerState(Device, new RasterizerStateDescription()
             {
                 CullMode = CullMode.Back,
                 IsDepthClipEnabled = false,
                 FillMode = FillMode.Solid,
-                IsFrontCounterClockwise = true,
+                IsFrontCounterClockwise = false,
             });
             ImmediateContext.Rasterizer.State = DefaultRasterizerState;
 
@@ -223,6 +250,9 @@ namespace ShoefitterDX.Renderer
             FrameConstants.ProjectionMatrix = Camera.ProjectionMatrix;
             FrameConstants.ViewportPosition = Vector2.Zero;
             FrameConstants.ViewportSize = Vector2.One;
+            Matrix invertedView = Camera.ViewMatrix;
+            invertedView.Invert();
+            FrameConstants.CameraPosition = invertedView.TranslationVector;
             ImmediateContext.UpdateSubresource(ref FrameConstants, FrameConstantBuffer);
 
             ImmediateContext.OutputMerger.SetRenderTargets(DepthbufferDSV, BackbufferMSAARTV);
@@ -237,7 +267,7 @@ namespace ShoefitterDX.Renderer
             // Render the grid, if enabled
             if (ShowGrid)
             {
-                RenderWorldMesh(GridMesh, new WorldInstanceConstants(Matrix.Identity));
+                RenderSolidMesh(GridMesh, new SolidInstanceConstants(Matrix.Identity));
             }
 
             // Copy the antialiased image to the non-antialiased backbuffer
@@ -280,24 +310,47 @@ namespace ShoefitterDX.Renderer
             DisposeResources?.Invoke(sender, e);
 
             // TODO: Figure out why we are double-disposing sometimes here!
-            GridMesh.Dispose();
+            GridMesh?.Dispose();
+            GridMesh = null;
 
-            AlphaBlendState.Dispose();
-            DefaultRasterizerState.Dispose();
+            AlphaBlendState?.Dispose();
+            AlphaBlendState = null;
+            DefaultRasterizerState?.Dispose();
+            DefaultRasterizerState = null;
 
-            WorldInstanceConstantBuffer.Dispose();
-            FrameConstantBuffer.Dispose();
+            WorldInstanceConstantBuffer?.Dispose();
+            WorldInstanceConstantBuffer = null;
+            SolidInstanceConstantBuffer?.Dispose();
+            SolidInstanceConstantBuffer = null;
+            FrameConstantBuffer?.Dispose();
+            FrameConstantBuffer = null;
 
-            WorldInputLayout.Dispose();
-            WorldPixelShader.Dispose();
-            WorldVertexShader.Dispose();
+            WorldInputLayout?.Dispose();
+            WorldInputLayout = null;
+            SolidPixelShader?.Dispose();
+            SolidPixelShader = null;
+            WorldPixelShader?.Dispose();
+            WorldPixelShader = null;
+            WorldVertexShader?.Dispose();
+            WorldVertexShader = null;
         }
 
-        public void RenderWorldMesh(D3D11Mesh mesh, WorldInstanceConstants instanceConstants)
+        public void RenderSolidMesh(D3D11Mesh mesh, SolidInstanceConstants instanceConstants)
+        {
+            ImmediateContext.MapSubresource(SolidInstanceConstantBuffer, MapMode.WriteDiscard, MapFlags.None, out DataStream stream);
+            stream.Write(instanceConstants);
+            ImmediateContext.UnmapSubresource(SolidInstanceConstantBuffer, 0);
+
+            this.RenderMesh(mesh, SolidInstanceConstantBuffer, WorldVertexShader, SolidPixelShader, WorldInputLayout);
+        }
+
+        public void RenderWorldMesh(D3D11Mesh mesh, WorldInstanceConstants instanceConstants, ShaderResourceView diffuseTexture)
         {
             ImmediateContext.MapSubresource(WorldInstanceConstantBuffer, MapMode.WriteDiscard, MapFlags.None, out DataStream stream);
             stream.Write(instanceConstants);
             ImmediateContext.UnmapSubresource(WorldInstanceConstantBuffer, 0);
+
+            ImmediateContext.PixelShader.SetShaderResource(0, diffuseTexture);
 
             this.RenderMesh(mesh, WorldInstanceConstantBuffer, WorldVertexShader, WorldPixelShader, WorldInputLayout);
         }
@@ -309,6 +362,8 @@ namespace ShoefitterDX.Renderer
             ImmediateContext.InputAssembler.InputLayout = inputLayout;
             ImmediateContext.VertexShader.SetConstantBuffer(0, FrameConstantBuffer);
             ImmediateContext.VertexShader.SetConstantBuffer(1, constantBuffer);
+            ImmediateContext.PixelShader.SetConstantBuffer(0, FrameConstantBuffer);
+            ImmediateContext.PixelShader.SetConstantBuffer(1, constantBuffer);
 
             // TODO: Apply textures
 
@@ -329,6 +384,147 @@ namespace ShoefitterDX.Renderer
             ImmediateContext.InputAssembler.PrimitiveTopology = mesh.PrimitiveTopology;
 
             ImmediateContext.DrawIndexed((int)mesh.IndexCount, 0, 0);
+        }
+
+        [Flags()]
+        private enum DDSPixelFormatFlags : uint
+        {
+            AlphaPixels = 0x1,
+            Alpha = 0x2,
+            FourCC = 0x4,
+            RGB = 0x40,
+            YUV = 0x200,
+            Luminance = 0x20000,
+        }
+
+        private const uint FourCCDXT1 = 0x31545844;
+        private const uint FourCCDXT3 = 0x33545844;
+        private const uint FourCCDXT5 = 0x35545844;
+        private const uint FourCCDX10 = 0x30315844;
+
+        public Texture2D LoadTextureFromDDS(string filename)
+        {
+            using (FileStream stream = new FileStream(filename, FileMode.Open))
+            using (BinaryReader reader = new BinaryReader(stream))
+            {
+                // Magic
+                uint magic = reader.ReadUInt32();
+                if (magic != 0x20534444)
+                    throw new FileFormatException("Incorrect DDS file magic!");
+
+                // DDS Header
+                uint headerSize = reader.ReadUInt32();
+                uint flags = reader.ReadUInt32();
+                uint height = reader.ReadUInt32();
+                uint width = reader.ReadUInt32();
+                uint pitchOrLinearSize = reader.ReadUInt32();
+                uint depth = reader.ReadUInt32();
+                uint mipmapCount = reader.ReadUInt32();
+                stream.Seek(sizeof(uint) * 11, SeekOrigin.Current); // Reserved1
+
+                // Pixel Format
+                uint pixelFormatSize = reader.ReadUInt32();
+                DDSPixelFormatFlags pixelFormatFlags = (DDSPixelFormatFlags)reader.ReadUInt32();
+                uint pixelFormatFourCC = reader.ReadUInt32();
+                uint pixelFormatRGBBitCount = reader.ReadUInt32();
+                uint pixelFormatRBitmask = reader.ReadUInt32();
+                uint pixelFormatGBitmask = reader.ReadUInt32();
+                uint pixelFormatBBitmask = reader.ReadUInt32();
+                uint pixelFormatABitmask = reader.ReadUInt32();
+
+                // Caps
+                uint caps = reader.ReadUInt32();
+                uint caps2 = reader.ReadUInt32();
+                uint caps3 = reader.ReadUInt32();
+                uint caps4 = reader.ReadUInt32();
+                stream.Seek(sizeof(uint), SeekOrigin.Current); // Reserved2
+
+                // We only support legacy compressed DDS (BC1 (DXT1), BC2 (DXT3), BC3 (DXT5)) or new DX10+ dds
+                if (!pixelFormatFlags.HasFlag(DDSPixelFormatFlags.FourCC))
+                    throw new FileFormatException("Only DDS files with a FourCC format specified are supported.");
+
+                SharpDX.DXGI.Format pixelFormat = SharpDX.DXGI.Format.Unknown;
+                int pixelDataLength = 0;
+                if (pixelFormatFourCC == FourCCDXT1)
+                {
+                    pixelFormat = SharpDX.DXGI.Format.BC1_UNorm;
+                    pixelDataLength = (int)(width * height / 2);
+                }
+                else if (pixelFormatFourCC == FourCCDXT3)
+                {
+                    pixelFormat = SharpDX.DXGI.Format.BC2_UNorm;
+                    pixelDataLength = (int)(width * height);
+                }
+                else if (pixelFormatFourCC == FourCCDXT5)
+                {
+                    pixelFormat = SharpDX.DXGI.Format.BC3_UNorm;
+                    pixelDataLength = (int)(width * height);
+                }
+                else if (pixelFormatFourCC == FourCCDX10)
+                {
+                    // DDS Extended Header (DX10+)
+                    pixelFormat = (SharpDX.DXGI.Format)reader.ReadUInt32();
+                    pixelDataLength = (int)(SharpDX.DXGI.FormatHelper.SizeOfInBits(pixelFormat) * width * height / 8);
+                    ResourceDimension dimension = (ResourceDimension)reader.ReadUInt32();
+                    uint miscFlags = reader.ReadUInt32();
+                    uint arraySize = reader.ReadUInt32();
+                    uint miscFalgs2 = reader.ReadUInt32();
+                }
+                else
+                {
+                    throw new FileFormatException("Only DDS files with a FourCC of DXT1, DXT3, DXT5, or DX10 are supported.");
+                }
+                byte[] pixelData = reader.ReadBytes(pixelDataLength);
+                System.IntPtr texdata = System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(pixelData, 0);
+                return new Texture2D(Device, new Texture2DDescription() { ArraySize = 1, BindFlags = BindFlags.ShaderResource, CpuAccessFlags = CpuAccessFlags.None, Format = pixelFormat, Width = (int)width, Height = (int)height, MipLevels = 1, Usage = ResourceUsage.Immutable, SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0) },
+                    new DataBox[] { new DataBox(texdata, (int)(width * SharpDX.DXGI.FormatHelper.SizeOfInBits(pixelFormat) / 8 * (SharpDX.DXGI.FormatHelper.IsCompressed(pixelFormat) ? 4 : 1)), 0) });
+            }
+        }
+
+        public Texture2D LoadTextureFromTGA(string filename)
+        {
+            using (FileStream stream = new FileStream(filename, FileMode.Open))
+            using (BinaryReader reader = new BinaryReader(stream))
+            {
+                // Read TGA header
+                byte idLength = reader.ReadByte();
+                byte colorMapType = reader.ReadByte();
+                byte dataTypeCode = reader.ReadByte();
+                ushort colorMapOrigin = reader.ReadUInt16();
+                ushort colorMapLength = reader.ReadUInt16();
+                byte colorMapBitDepth = reader.ReadByte();
+                ushort xOrigin = reader.ReadUInt16();
+                ushort yOrigin = reader.ReadUInt16();
+                ushort width = reader.ReadUInt16();
+                ushort height = reader.ReadUInt16();
+                byte bitDepth = reader.ReadByte();
+                byte imageDescriptor = reader.ReadByte();
+                string id = "";
+                if (idLength > 0)
+                    id = Encoding.ASCII.GetString(reader.ReadBytes(idLength));
+
+                if (bitDepth != 32)
+                    throw new System.BadImageFormatException("TGAs need to be 32bit!");
+
+                if (dataTypeCode == 1)
+                {
+                    throw new System.BadImageFormatException("No paletted TGAs!");
+                }
+                else if (dataTypeCode == 2)
+                {
+                    if (colorMapLength > 0)
+                        stream.Seek(colorMapLength, SeekOrigin.Current);
+
+                    byte[] pixelData = reader.ReadBytes(width * height * 4);
+                    System.IntPtr texdata = System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(pixelData, 0);
+                    return new Texture2D(Device, new Texture2DDescription() { ArraySize = 1, BindFlags = BindFlags.ShaderResource, CpuAccessFlags = CpuAccessFlags.None, Format = SharpDX.DXGI.Format.B8G8R8A8_UNorm, Width = width, Height = height, MipLevels = 1, Usage = ResourceUsage.Immutable, SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0) },
+                        new DataBox[] { new DataBox(texdata, 4 * width, 0) });
+                }
+                else
+                {
+                    throw new System.BadImageFormatException("Bad TGA format!");
+                }
+            }
         }
 
         #region Camera Control

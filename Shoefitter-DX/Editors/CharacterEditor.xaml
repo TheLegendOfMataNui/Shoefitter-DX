@@ -107,6 +107,13 @@
             </TabItem>
             <TabItem Header="Models">
                 <!-- TODO: Implement! -->
+                <ListBox ItemsSource="{Binding Models}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:CharacterModel}">
+                            <TextBlock Text="{Binding Path}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </TabItem>
             <TabItem Header="Animations">
                 <!-- TODO: Implement! -->

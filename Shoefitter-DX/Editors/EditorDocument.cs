@@ -24,6 +24,7 @@ namespace ShoefitterDX.Editors
             this.ToolTip = editor.TabToolTip;
 
             Editor.PropertyChanged += Editor_PropertyChanged;
+            Closed += (sender, args) => Editor.PropertyChanged -= Editor_PropertyChanged;
         }
 
         private void Editor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
