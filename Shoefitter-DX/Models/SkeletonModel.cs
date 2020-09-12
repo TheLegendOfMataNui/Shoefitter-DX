@@ -78,6 +78,7 @@ namespace ShoefitterDX.Models
         private BoneModel ImportBHDBone(SAGESharp.BHDFile.Bone b)
         {
             BoneModel bone = new BoneModel(b.Index, b.Transform);
+            //bone.Transform.Transpose();
 
             foreach (SAGESharp.BHDFile.Bone childBone in b.Children)
             {

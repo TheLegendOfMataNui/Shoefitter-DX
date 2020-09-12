@@ -63,6 +63,8 @@ namespace ShoefitterDX.Editors
         public ObservableCollection<CharacterModel> Models { get; } = new ObservableCollection<CharacterModel>();
 
         private D3D11Mesh CylinderMesh;
+        private D3D11Mesh AxisMesh;
+        private D3D11Mesh BoneMesh;
 
         private static T ReadSLBFile<T>(string filename)
         {
@@ -141,6 +143,8 @@ namespace ShoefitterDX.Editors
         private void PreviewRenderer_CreateResources(object sender, EventArgs e)
         {
             this.CylinderMesh = D3D11Mesh.CreateCylinder(PreviewRenderer.Device, Vector3.UnitX * 0.5f, Vector3.UnitZ * 0.5f, Vector3.UnitY * 0.5f, new Vector4(0.1f, 0.8f, 0.9f, 1.0f));
+            this.AxisMesh = D3D11Mesh.CreateAxes(PreviewRenderer.Device);
+            this.BoneMesh = D3D11Mesh.CreateBone(PreviewRenderer.Device, Vector4.One);
             foreach (CharacterModel model in this.Models)
             {
                 using (FileStream stream = new FileStream(model.Path, FileMode.Open))
@@ -149,6 +153,30 @@ namespace ShoefitterDX.Editors
                     XFile file = new XFile(reader);
                     model.Preview = XPreview.FromXFile(PreviewRenderer.Device, file, Path.Combine(Path.GetDirectoryName(this.Item.FullPath), "Textures"), PreviewRenderer);
                 }
+            }
+        }
+
+        private void RecursiveRenderBone(Models.BoneModel bone, Matrix parentTransform)
+        {
+            Matrix combined = bone.Transform * parentTransform;
+
+            PreviewRenderer.RenderSolidMesh(this.AxisMesh, new SolidInstanceConstants(Matrix.Scaling(0.1f) * combined));
+
+            foreach (Models.BoneModel childBone in bone.Children)
+            {
+                Matrix look = new Matrix();
+                Vector3 right = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, childBone.Transform.TranslationVector));
+                look.Row1 = new Vector4(right, 0.0f);
+                look.Row2 = new Vector4(Vector3.Normalize(Vector3.Cross(right, childBone.Transform.TranslationVector)), 0.0f);
+                look.Row3 = new Vector4(Vector3.Normalize(childBone.Transform.TranslationVector), 0.0f);
+                look.Row4 = Vector4.UnitW;
+
+                Matrix final = Matrix.Scaling(0.1f, 0.1f, childBone.Transform.TranslationVector.Length()) * look * combined;
+                Vector3 endpointParent = Vector3.TransformCoordinate(Vector3.UnitZ, final);
+                Vector3 endpointChild = (childBone.Transform * combined).TranslationVector;
+                PreviewRenderer.RenderSolidMesh(this.BoneMesh, new SolidInstanceConstants(final));
+
+                this.RecursiveRenderBone(childBone, combined);
             }
         }
 
@@ -167,16 +195,27 @@ namespace ShoefitterDX.Editors
                 {
                     foreach (XPreviewSection section in model.Preview.Sections)
                     {
-                        PreviewRenderer.RenderWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(-MathUtil.PiOverTwo), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture); // Matrix.RotationX(-MathUtil.PiOverTwo)
+                        PreviewRenderer.RenderWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(0.0f/*-MathUtil.PiOverTwo*/), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture); // Matrix.RotationX(-MathUtil.PiOverTwo)
                     }
                 }
             }
+
+            PreviewRenderer.ImmediateContext.OutputMerger.DepthStencilState = PreviewRenderer.AlwaysDepthStencilState;
+            foreach (Models.BoneModel bone in Skeleton.RootBones)
+            {
+                this.RecursiveRenderBone(bone, Matrix.Identity);
+            }
+            PreviewRenderer.ImmediateContext.OutputMerger.DepthStencilState = PreviewRenderer.DefaultDepthStencilState;
         }
 
         private void PreviewRenderer_DisposeResources(object sender, EventArgs e)
         {
             this.CylinderMesh?.Dispose();
             this.CylinderMesh = null;
+            this.AxisMesh?.Dispose();
+            this.AxisMesh = null;
+            this.BoneMesh?.Dispose();
+            this.BoneMesh = null;
 
             foreach (CharacterModel model in this.Models)
             {

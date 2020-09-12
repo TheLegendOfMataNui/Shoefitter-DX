@@ -70,6 +70,40 @@ namespace ShoefitterDX.Renderer
             return D3D11Mesh.Create(device, vertices.ToArray(), indices.ToArray(), SharpDX.Direct3D.PrimitiveTopology.LineList);
         }
 
+        private static readonly Vector4 Red = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+        private static readonly Vector4 Green = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+        private static readonly Vector4 Blue = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        public static D3D11Mesh CreateAxes(Device device)
+        {
+            
+            return D3D11Mesh.Create(device, new PreviewVertex[]
+            {
+                new PreviewVertex(Vector3.Zero, Vector3.Zero, Vector2.Zero, Red),
+                new PreviewVertex(Vector3.UnitX, Vector3.Zero, Vector2.Zero, Red),
+                new PreviewVertex(Vector3.Zero, Vector3.Zero, Vector2.Zero, Green),
+                new PreviewVertex(Vector3.UnitY, Vector3.Zero, Vector2.Zero, Green),
+                new PreviewVertex(Vector3.Zero, Vector3.Zero, Vector2.Zero, Blue),
+                new PreviewVertex(Vector3.UnitZ, Vector3.Zero, Vector2.Zero, Blue)
+            }, new uint[] {
+                0, 1, 2, 3, 4, 5
+            }, SharpDX.Direct3D.PrimitiveTopology.LineList);
+        }
+
+        public static D3D11Mesh CreateBone(Device device, Vector4 color)
+        {
+            return D3D11Mesh.Create(device, new PreviewVertex[]
+            {
+                new PreviewVertex(Vector3.Zero, Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.5f, 0.0f, 0.25f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(Vector3.UnitZ, Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(-0.5f, 0.0f, 0.25f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.0f, 0.5f, 0.25f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.0f, -0.5f, 0.25f), Vector3.Zero, Vector2.Zero, color)
+            }, new uint[] {
+                0, 1, 2, 3, 0, 4, 2, 5, 0
+            }, SharpDX.Direct3D.PrimitiveTopology.LineStrip);
+        }
+
         public static D3D11Mesh CreateFullscreenQuad(Device device)
         {
             List<PreviewVertex> vertices = new List<PreviewVertex>

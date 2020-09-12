@@ -99,6 +99,8 @@ namespace ShoefitterDX.Renderer
         public InputLayout WorldInputLayout { get; private set; }
         public RasterizerState DefaultRasterizerState { get; private set; }
         public BlendState AlphaBlendState { get; private set; }
+        public DepthStencilState DefaultDepthStencilState { get; private set; }
+        public DepthStencilState AlwaysDepthStencilState { get; private set; }
         private FrameConstants FrameConstants;
         public SharpDX.Direct3D11.Buffer FrameConstantBuffer { get; private set; }
         public SharpDX.Direct3D11.Buffer SolidInstanceConstantBuffer { get; private set; }
@@ -178,6 +180,10 @@ namespace ShoefitterDX.Renderer
             bsdesc.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
             AlphaBlendState = new BlendState(Device, bsdesc);
             ImmediateContext.OutputMerger.BlendState = AlphaBlendState;
+
+            DefaultDepthStencilState = new DepthStencilState(Device, new DepthStencilStateDescription() { DepthComparison = Comparison.Less, DepthWriteMask = DepthWriteMask.All, IsDepthEnabled = true });
+            ImmediateContext.OutputMerger.DepthStencilState = DefaultDepthStencilState;
+            AlwaysDepthStencilState = new DepthStencilState(Device, new DepthStencilStateDescription() { DepthComparison = Comparison.Always, DepthWriteMask = DepthWriteMask.All, IsDepthEnabled = false });
 
             GridMesh = D3D11Mesh.CreateGrid(Device, 10, new Vector4(0.7f, 0.7f, 0.7f, 0.5f));
 
@@ -313,6 +319,10 @@ namespace ShoefitterDX.Renderer
             GridMesh?.Dispose();
             GridMesh = null;
 
+            AlwaysDepthStencilState?.Dispose();
+            AlwaysDepthStencilState = null;
+            DefaultDepthStencilState?.Dispose();
+            DefaultDepthStencilState = null;
             AlphaBlendState?.Dispose();
             AlphaBlendState = null;
             DefaultRasterizerState?.Dispose();
