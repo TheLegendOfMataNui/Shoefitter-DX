@@ -365,8 +365,6 @@ namespace ShoefitterDX.Renderer
             ImmediateContext.PixelShader.SetConstantBuffer(0, FrameConstantBuffer);
             ImmediateContext.PixelShader.SetConstantBuffer(1, constantBuffer);
 
-            // TODO: Apply textures
-
             ImmediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding[]
             {
                     new VertexBufferBinding(mesh.VertexBuffer, (int)mesh.VertexSize, 0),

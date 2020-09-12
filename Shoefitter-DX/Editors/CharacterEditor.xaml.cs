@@ -57,6 +57,9 @@ namespace ShoefitterDX.Editors
         private string AIInfoFilePath => Path.Combine(this.Item.FullPath, "AIInfo.slb");
         public SAGESharp.SLB.AIInfo AIInfoFile { get; }
 
+        private List<string> SkeletonFilePaths { get; } = new List<string>();
+        public Models.SkeletonModel Skeleton { get; }
+
         public ObservableCollection<CharacterModel> Models { get; } = new ObservableCollection<CharacterModel>();
 
         private D3D11Mesh CylinderMesh;
@@ -101,6 +104,12 @@ namespace ShoefitterDX.Editors
             foreach (string childFile in Directory.EnumerateFiles(item.FullPath, "*.x", SearchOption.AllDirectories))
             {
                 this.Models.Add(new CharacterModel(childFile));
+            }
+
+            using (FileStream bhdStream = new FileStream(Path.Combine(item.FullPath, Path.GetFileName(item.FullPath) + ".bhd"), FileMode.Open))
+            using (BinaryReader bhdReader = new BinaryReader(bhdStream))
+            {
+                Skeleton = new Models.SkeletonModel(new SAGESharp.BHDFile(bhdReader), true);
             }
 
             InitializeComponent();
