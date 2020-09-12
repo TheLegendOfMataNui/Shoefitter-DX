@@ -6,6 +6,7 @@
     <RootNamespace>ShoefitterDX</RootNamespace>
     <UseWPF>true</UseWPF>
     <StartupObject>ShoefitterDX.Program</StartupObject>
+    <Company>Litestone</Company>
   </PropertyGroup>
 
   <ItemGroup>

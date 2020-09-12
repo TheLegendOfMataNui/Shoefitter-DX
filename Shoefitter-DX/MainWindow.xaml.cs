@@ -25,6 +25,8 @@ namespace ShoefitterDX
     public partial class MainWindow : Window
     {
         private Dictionary<object, EditorDocument> OpenDocuments { get; } = new Dictionary<object, EditorDocument>();
+        private SAGESharp.INIConfig Config { get; }
+        private const string ConfigFilename = "Shoeffiter-DX.ini";
 
         public Context Context { get; } = new Context();
         public DataBrowser DataBrowser { get; }
@@ -33,7 +35,8 @@ namespace ShoefitterDX
         {
             InitializeComponent();
 
-            Context.ProjectDirectory = @"E:\Projects\Modding\Bionicle\My-Code\LOMN-Beta\";
+            Config = new SAGESharp.INIConfig(ConfigFilename);
+            Context.ProjectDirectory = Config.GetValueOrDefault("Context", "ProjectDirectory", @"E:\Projects\Modding\Bionicle\My-Code\LOMN-Beta\");
 
             this.DataBrowser = new DataBrowser(this.Context);
             this.DataBrowser.ItemDoubleClicked += DataBrowser_ItemDoubleClicked;
@@ -42,6 +45,13 @@ namespace ShoefitterDX
             rightPane.DockWidth = new GridLength(200);
             rightPane.Children.Add(new LayoutAnchorable() { Content = this.DataBrowser, Title = "Data Browser" });
             DockingManager.Layout.RootPanel.Children.Add(rightPane);
+
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Config.Write(ConfigFilename);
         }
 
         private void DataBrowser_ItemDoubleClicked(object sender, DataBrowserItem e)
