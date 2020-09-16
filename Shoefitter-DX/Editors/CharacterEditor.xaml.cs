@@ -60,6 +60,9 @@ namespace ShoefitterDX.Editors
         private List<string> SkeletonFilePaths { get; } = new List<string>();
         public Models.SkeletonModel Skeleton { get; }
 
+        private Matrix[] Pose = new Matrix[255]; // Each joint's local pose
+        private Matrix[] WorldPose = new Matrix[255]; // Cumulative joint transforms in model space
+
         public ObservableCollection<CharacterModel> Models { get; } = new ObservableCollection<CharacterModel>();
 
         private D3D11Mesh CylinderMesh;
@@ -112,12 +115,14 @@ namespace ShoefitterDX.Editors
             using (BinaryReader bhdReader = new BinaryReader(bhdStream))
             {
                 Skeleton = new Models.SkeletonModel(new SAGESharp.BHDFile(bhdReader), true);
+                Skeleton.WriteTransforms(Pose);
             }
 
             InitializeComponent();
 
             PreviewRenderer.CreateResources += PreviewRenderer_CreateResources;
             PreviewRenderer.RenderContent += PreviewRenderer_RenderContent;
+            PreviewRenderer.UpdateContent += PreviewRenderer_UpdateContent;
             PreviewRenderer.DisposeResources += PreviewRenderer_DisposeResources;
 
             this.Unloaded += CharacterEditor_Unloaded;
@@ -151,14 +156,14 @@ namespace ShoefitterDX.Editors
                 using (BinaryReader reader = new BinaryReader(stream))
                 {
                     XFile file = new XFile(reader);
-                    model.Preview = XPreview.FromXFile(PreviewRenderer.Device, file, Path.Combine(Path.GetDirectoryName(this.Item.FullPath), "Textures"), PreviewRenderer);
+                    model.Preview = XPreview.FromXFile(PreviewRenderer.Device, file, Path.Combine(Path.GetDirectoryName(this.Item.FullPath), "Textures"), PreviewRenderer, out bool isBiped);
                 }
             }
         }
 
         private void RecursiveRenderBone(Models.BoneModel bone, Matrix parentTransform)
         {
-            Matrix combined = bone.Transform * parentTransform;
+            Matrix combined = Pose[bone.ID] * parentTransform;
 
             PreviewRenderer.RenderSolidMesh(this.AxisMesh, new SolidInstanceConstants(Matrix.Scaling(0.1f) * combined));
 
@@ -189,13 +194,14 @@ namespace ShoefitterDX.Editors
                 PreviewRenderer.RenderSolidMesh(this.CylinderMesh, new SolidInstanceConstants(Matrix.Scaling(size) * Matrix.Translation(center)));
             }
 
+            Skeleton.BakePose(Pose, WorldPose);
             foreach (CharacterModel model in this.Models)
             {
                 if (model.ShowPreview)
                 {
                     foreach (XPreviewSection section in model.Preview.Sections)
                     {
-                        PreviewRenderer.RenderWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(0.0f/*-MathUtil.PiOverTwo*/), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture); // Matrix.RotationX(-MathUtil.PiOverTwo)
+                        PreviewRenderer.RenderSkinnedWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(0.0f/*-MathUtil.PiOverTwo*/), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture, model.Preview.BindPoseBuffer, WorldPose); // Matrix.RotationX(-MathUtil.PiOverTwo)
                     }
                 }
             }
@@ -206,6 +212,11 @@ namespace ShoefitterDX.Editors
                 this.RecursiveRenderBone(bone, Matrix.Identity);
             }
             PreviewRenderer.ImmediateContext.OutputMerger.DepthStencilState = PreviewRenderer.DefaultDepthStencilState;
+        }
+
+        private void PreviewRenderer_UpdateContent(object sender, UpdateContentEventArgs e)
+        {
+
         }
 
         private void PreviewRenderer_DisposeResources(object sender, EventArgs e)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using SAGESharp;
 using SharpDX;
@@ -37,10 +39,12 @@ namespace ShoefitterDX.Renderer
     public class XPreview
     {
         public List<XPreviewSection> Sections { get; }
+        public SharpDX.Direct3D11.Buffer BindPoseBuffer { get; private set; }
 
-        public XPreview(IEnumerable<XPreviewSection> sections)
+        public XPreview(IEnumerable<XPreviewSection> sections, SharpDX.Direct3D11.Buffer bindPoseBuffer)
         {
             this.Sections = new List<XPreviewSection>(sections);
+            this.BindPoseBuffer = bindPoseBuffer;
         }
 
         public void Dispose()
@@ -50,12 +54,14 @@ namespace ShoefitterDX.Renderer
                 section.Dispose();
             }
             this.Sections.Clear();
+            this.BindPoseBuffer?.Dispose();
+            this.BindPoseBuffer = null;
         }
 
-        public static XPreview FromXFile(Device device, SAGESharp.XFile xFile, string textureDirectory, PreviewRenderer renderer)
+        public static XPreview FromXFile(Device device, SAGESharp.XFile xFile, string textureDirectory, PreviewRenderer renderer, out bool isBiped)
         {
             List<XPreviewSection> sections = new List<XPreviewSection>();
-            List<List<PreviewVertex>> sectionVertices = new List<List<PreviewVertex>>();
+            List<List<SkinnedPreviewVertex>> sectionVertices = new List<List<SkinnedPreviewVertex>>();
             List<List<uint>> sectionIndices = new List<List<uint>>();
 
             XObject mesh = xFile.Objects[0][1].Object;
@@ -73,6 +79,9 @@ namespace ShoefitterDX.Renderer
             int colorCount = 0;
 
             Vector3[] positions = null;
+            List<float>[] boneWeights = null;
+            List<byte>[] boneIndices = null;
+            Matrix[] boneBindPoses = null;
             Vector3[] normals = null;
             Vector2[] uvs = null;
             Vector4[] colors = null;
@@ -121,16 +130,50 @@ namespace ShoefitterDX.Renderer
             int sectionCount = (int)meshMaterialList["nMaterials"].Values[0];
             for (int i = 0; i < sectionCount; i++)
             {
-                sectionVertices.Add(new List<PreviewVertex>());
+                sectionVertices.Add(new List<SkinnedPreviewVertex>());
                 sectionIndices.Add(new List<uint>());
             }
 
             positions = new Vector3[vertexCount];
+            boneWeights = new List<float>[vertexCount];
+            boneIndices = new List<byte>[vertexCount];
             for (int i = 0; i < vertexCount; i++)
             {
                 positions[i] = XUtils.Vector((XObjectStructure)mesh["vertices"].Values[i]);
+                boneWeights[i] = new List<float>();
+                boneIndices[i] = new List<byte>();
             }
 
+            // Load bone weights, bone indices and bone bind poses
+            XObject firstBoneInfo = mesh.Children.FirstOrDefault(ch => ch.Object.DataType.NameData == "SkinWeights")?.Object;
+            bool isSkinned = firstBoneInfo != null;
+            isBiped = false;
+            if (firstBoneInfo != null)
+            {
+                if (BHDFile.BipedBoneNames.Contains(firstBoneInfo["transformNodeName"].Values[0] as string))
+                    isBiped = true;
+
+                string[] boneNames = isBiped ? BHDFile.BipedBoneNames : BHDFile.NonBipedBoneNames;
+
+                boneBindPoses = new Matrix[boneNames.Length];
+
+                foreach (XChildObject meshChild in mesh.Children.Where(ch => ch.Object.DataType.NameData == "SkinWeights"))
+                {
+                    string boneName = meshChild.Object["transformNodeName"].Values[0] as string;
+                    byte boneIndex = (byte)Array.IndexOf(boneNames, boneName);
+                    boneBindPoses[boneIndex] = new Matrix(Array.ConvertAll((meshChild.Object["matrixOffset"].Values[0] as XObjectStructure)["matrix"].Values.OfType<double>().ToArray(), dbl => (float)dbl));
+                    int weightCount = (int)meshChild.Object["nWeights"].Values[0];
+
+                    for (int i = 0; i < weightCount; i++)
+                    {
+                        int positionIndex = (int)meshChild.Object["vertexIndices"].Values[i];
+                        boneWeights[positionIndex].Add((float)(double)meshChild.Object["weights"].Values[i]);
+                        boneIndices[positionIndex].Add(boneIndex);
+                    }
+                }
+            }
+
+            // Copy data into sections, creating naive indices along the way
             for (int i = 0; i < faceCount; i++)
             {
                 XObjectStructure face = (XObjectStructure)mesh["faces"].Values[i];
@@ -145,7 +188,19 @@ namespace ShoefitterDX.Renderer
                     int pIndex = (int)face["faceVertexIndices"].Values[v];
                     int nIndex = (int)faceNormals["faceVertexIndices"].Values[v];
                     sectionIndices[materialIndex].Add((uint)sectionVertices[materialIndex].Count);
-                    sectionVertices[materialIndex].Add(new PreviewVertex(positions[pIndex], normals?[nIndex] ?? Vector3.Zero, uvs?[pIndex] ?? Vector2.One, colors?[pIndex] ?? Vector4.One));
+
+                    Vector4 localBoneWeights = Vector4.Zero;
+                    uint localBoneIndices = 0;
+                    int weightCount = boneIndices[pIndex].Count;
+                    if (weightCount > 4)
+                        throw new NotSupportedException("Too many weights on vertex!");
+                    for (int weight = 0; weight < weightCount; weight++)
+                    {
+                        localBoneWeights[weight] = boneWeights[pIndex][weight];
+                        localBoneIndices |= (uint)boneIndices[pIndex][weight] << (weight * 8);
+                    }
+
+                    sectionVertices[materialIndex].Add(new SkinnedPreviewVertex(positions[pIndex], normals?[nIndex] ?? Vector3.Zero, uvs?[pIndex] ?? Vector2.One, colors?[pIndex] ?? Vector4.One, localBoneWeights, localBoneIndices));
                 }
 
             }
@@ -185,7 +240,19 @@ namespace ShoefitterDX.Renderer
                 }
             }
 
-            return new XPreview(sections);
+            SharpDX.Direct3D11.Buffer bindPoseBuffer = null;
+            if (isSkinned)
+            {
+                bindPoseBuffer = new SharpDX.Direct3D11.Buffer(device, Utilities.SizeOf<Matrix>() * 255, ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
+                device.ImmediateContext.MapSubresource(bindPoseBuffer, MapMode.WriteDiscard, MapFlags.None, out DataStream stream);
+                for (int i = 0; i < boneBindPoses.Length; i++)
+                {
+                    stream.Write(boneBindPoses[i]);
+                }
+                device.ImmediateContext.UnmapSubresource(bindPoseBuffer, 0);
+            }
+
+            return new XPreview(sections, bindPoseBuffer);
         }
     }
 }

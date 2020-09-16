@@ -35,6 +35,37 @@ namespace ShoefitterDX.Renderer
         };
     }
 
+    public struct SkinnedPreviewVertex
+    {
+        public Vector3 Position;
+        public Vector3 Normal;
+        public Vector2 UV;
+        public Vector4 Color;
+        public Vector4 BoneWeights;
+        public uint BoneIndices;
+
+        public SkinnedPreviewVertex(Vector3 position, Vector3 normal, Vector2 uv, Vector4 color, Vector4 boneWeights, uint boneIndices)
+        {
+            Position = position;
+            Normal = normal;
+            UV = uv;
+            Color = color;
+            BoneWeights = boneWeights;
+            BoneIndices = boneIndices;
+        }
+
+        public static readonly InputElement[] InputElements =
+        {
+            // Members of SkinnedPreviewVertex
+            new InputElement("POSITION", 0, SharpDX.DXGI.Format.R32G32B32_Float, 0),
+            new InputElement("NORMAL", 0, SharpDX.DXGI.Format.R32G32B32_Float, 0),
+            new InputElement("TEXCOORD", 0, SharpDX.DXGI.Format.R32G32_Float, 0),
+            new InputElement("COLOR", 0, SharpDX.DXGI.Format.R32G32B32A32_Float, 0),
+            new InputElement("BLENDWEIGHTS", 0, SharpDX.DXGI.Format.R32G32B32A32_Float, 0),
+            new InputElement("BLENDINDICES", 0, SharpDX.DXGI.Format.R8G8B8A8_UInt, 0),
+        };
+    }
+
     public struct FrameConstants
     {
         public Matrix ViewMatrix;
@@ -92,11 +123,14 @@ namespace ShoefitterDX.Renderer
         public float ViewportHeight => (float)D3D11.RenderSize.Height;
         public int MSAACount { get; private set; }
         public int MSAAQuality { get; private set; }
+        public bool RenderDocCapture { get; set; }
 
         public VertexShader WorldVertexShader { get; private set; }
         public PixelShader WorldPixelShader { get; private set; }
         public PixelShader SolidPixelShader { get; private set; }
+        public VertexShader SkinnedWorldVertexShader { get; private set; }
         public InputLayout WorldInputLayout { get; private set; }
+        public InputLayout SkinnedWorldInputLayout { get; private set; }
         public RasterizerState DefaultRasterizerState { get; private set; }
         public BlendState AlphaBlendState { get; private set; }
         public DepthStencilState DefaultDepthStencilState { get; private set; }
@@ -105,6 +139,7 @@ namespace ShoefitterDX.Renderer
         public SharpDX.Direct3D11.Buffer FrameConstantBuffer { get; private set; }
         public SharpDX.Direct3D11.Buffer SolidInstanceConstantBuffer { get; private set; }
         public SharpDX.Direct3D11.Buffer WorldInstanceConstantBuffer { get; private set; }
+        public SharpDX.Direct3D11.Buffer SkeletonPoseBuffer { get; private set; }
 
         private bool _isFirstPerson = false;
         public bool IsFirstPerson
@@ -130,6 +165,7 @@ namespace ShoefitterDX.Renderer
             InitializeComponent();
 
             this.IsFirstPerson = false;
+            this.RenderDocCaptureButton.Visibility = RenderDoc.IsRenderDocAttached() ? Visibility.Visible : Visibility.Collapsed;
 
             D3D11.CreateResources += D3D11_CreateResources;
             D3D11.CreateBuffers += D3D11_CreateBuffers;
@@ -154,11 +190,14 @@ namespace ShoefitterDX.Renderer
             WorldVertexShader = new VertexShader(Device, ResourceCache.Resources["WorldVertexShader.hlsl"]);
             WorldPixelShader = new PixelShader(Device, ResourceCache.Resources["WorldPixelShader.hlsl"]);
             SolidPixelShader = new PixelShader(Device, ResourceCache.Resources["SolidPixelShader.hlsl"]);
+            SkinnedWorldVertexShader = new VertexShader(Device, ResourceCache.Resources["SkinnedWorldVertexShader.hlsl"]);
             WorldInputLayout = new InputLayout(Device, ResourceCache.Resources["WorldVertexShader.hlsl"], PreviewVertex.InputElements);
+            SkinnedWorldInputLayout = new InputLayout(Device, ResourceCache.Resources["SkinnedWorldVertexShader.hlsl"], SkinnedPreviewVertex.InputElements);
 
             FrameConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, SharpDX.Utilities.SizeOf<FrameConstants>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
             SolidInstanceConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, SharpDX.Utilities.SizeOf<SolidInstanceConstants>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
             WorldInstanceConstantBuffer = new SharpDX.Direct3D11.Buffer(Device, Utilities.SizeOf<WorldInstanceConstants>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
+            SkeletonPoseBuffer = new SharpDX.Direct3D11.Buffer(Device, Utilities.SizeOf<Matrix>() * 255, ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
 
             DefaultRasterizerState = new RasterizerState(Device, new RasterizerStateDescription()
             {
@@ -243,13 +282,13 @@ namespace ShoefitterDX.Renderer
         private void D3D11_RenderContent(object sender, EventArgs e)
         {
             bool isCapturing = false;
-            /*if (RenderDocCapture)
+            if (RenderDocCapture)
             {
                 isCapturing = true;
                 RenderDocCapture = false;
 
                 RenderDoc.StartCapture();
-            }*/
+            }
 
             // Update the frame constants buffer
             FrameConstants.ViewMatrix = Camera.ViewMatrix;
@@ -279,10 +318,10 @@ namespace ShoefitterDX.Renderer
             // Copy the antialiased image to the non-antialiased backbuffer
             ImmediateContext.ResolveSubresource(BackbufferMSAA, 0, Backbuffer, 0, SharpDX.DXGI.Format.B8G8R8A8_UNorm);
 
-            /*if (isCapturing)
+            if (isCapturing)
             {
                 RenderDoc.EndCapture();
-            }*/
+            }
         }
 
         public event EventHandler<UpdateContentEventArgs> UpdateContent;
@@ -328,6 +367,8 @@ namespace ShoefitterDX.Renderer
             DefaultRasterizerState?.Dispose();
             DefaultRasterizerState = null;
 
+            SkeletonPoseBuffer?.Dispose();
+            SkeletonPoseBuffer = null;
             WorldInstanceConstantBuffer?.Dispose();
             WorldInstanceConstantBuffer = null;
             SolidInstanceConstantBuffer?.Dispose();
@@ -335,8 +376,12 @@ namespace ShoefitterDX.Renderer
             FrameConstantBuffer?.Dispose();
             FrameConstantBuffer = null;
 
+            SkinnedWorldInputLayout?.Dispose();
+            SkinnedWorldInputLayout = null;
             WorldInputLayout?.Dispose();
             WorldInputLayout = null;
+            SkinnedWorldVertexShader?.Dispose();
+            SkinnedWorldVertexShader = null;
             SolidPixelShader?.Dispose();
             SolidPixelShader = null;
             WorldPixelShader?.Dispose();
@@ -363,6 +408,27 @@ namespace ShoefitterDX.Renderer
             ImmediateContext.PixelShader.SetShaderResource(0, diffuseTexture);
 
             this.RenderMesh(mesh, WorldInstanceConstantBuffer, WorldVertexShader, WorldPixelShader, WorldInputLayout);
+        }
+
+        public void RenderSkinnedWorldMesh(D3D11Mesh mesh, WorldInstanceConstants instanceConstants, ShaderResourceView diffuseTexture, SharpDX.Direct3D11.Buffer bindPoseBufer, Matrix[] skeletonPose)
+        {
+            ImmediateContext.MapSubresource(SkeletonPoseBuffer, MapMode.WriteDiscard, MapFlags.None, out DataStream poseStream);
+            //stream.Write(skeletonPose);
+            foreach (Matrix m in skeletonPose)
+            {
+                poseStream.Write(m);
+            }
+            ImmediateContext.UnmapSubresource(SkeletonPoseBuffer, 0);
+            ImmediateContext.VertexShader.SetConstantBuffer(2, bindPoseBufer);
+            ImmediateContext.VertexShader.SetConstantBuffer(3, SkeletonPoseBuffer);
+
+            ImmediateContext.MapSubresource(WorldInstanceConstantBuffer, MapMode.WriteDiscard, MapFlags.None, out DataStream instanceStream);
+            instanceStream.Write(instanceConstants);
+            ImmediateContext.UnmapSubresource(WorldInstanceConstantBuffer, 0);
+
+            ImmediateContext.PixelShader.SetShaderResource(0, diffuseTexture);
+
+            this.RenderMesh(mesh, WorldInstanceConstantBuffer, SkinnedWorldVertexShader, WorldPixelShader, SkinnedWorldInputLayout);
         }
 
         public void RenderMesh(D3D11Mesh mesh, SharpDX.Direct3D11.Buffer constantBuffer, VertexShader vs, PixelShader ps, InputLayout inputLayout)
@@ -574,5 +640,10 @@ namespace ShoefitterDX.Renderer
             e.Handled = Controller?.KeyDown(e.Key == Key.System ? e.SystemKey : e.Key) ?? false;
         }
         #endregion
+
+        private void RenderDocCaptureButton_Click(object sender, RoutedEventArgs e)
+        {
+            RenderDocCapture = true;
+        }
     }
 }

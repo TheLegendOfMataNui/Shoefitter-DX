@@ -12,7 +12,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <ToolBar>
-
+            <Button x:Name="RenderDocCaptureButton" Click="RenderDocCaptureButton_Click">RenderDoc: Capture</Button>
         </ToolBar>
         <local:D3D11Element x:Name="D3D11" Grid.Row="1" />
     </Grid>

@@ -75,6 +75,40 @@ namespace ShoefitterDX.Models
             this.RootBones.Add(this.ImportBHDBone(bhdFile.Bones[0]));
         }
 
+        private void WriteBoneTransform(BoneModel bone, Matrix[] outputArray)
+        {
+            outputArray[bone.ID] = bone.Transform;
+            foreach (BoneModel childBone in bone.Children)
+            {
+                WriteBoneTransform(childBone, outputArray);
+            }
+        }
+
+        public void WriteTransforms(Matrix[] outputArray)
+        {
+            foreach (BoneModel rootBone in RootBones)
+            {
+                WriteBoneTransform(rootBone, outputArray);
+            }
+        }
+
+        private void BakeBonePose(BoneModel bone, Matrix transform, Matrix[] poses, Matrix[] outputTransforms)
+        {
+            outputTransforms[bone.ID] = poses[bone.ID] * transform;
+            foreach (BoneModel childBone in bone.Children)
+            {
+                BakeBonePose(childBone, outputTransforms[bone.ID], poses, outputTransforms);
+            }
+        }
+
+        public void BakePose(Matrix[] poses, Matrix[] outputTransforms)
+        {
+            foreach (BoneModel rootBone in RootBones)
+            {
+                BakeBonePose(rootBone, Matrix.Identity, poses, outputTransforms);
+            }
+        }
+
         private BoneModel ImportBHDBone(SAGESharp.BHDFile.Bone b)
         {
             BoneModel bone = new BoneModel(b.Index, b.Transform);
