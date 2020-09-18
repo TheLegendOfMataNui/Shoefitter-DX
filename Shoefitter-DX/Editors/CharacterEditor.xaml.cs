@@ -1,6 +1,8 @@
 ﻿using SAGESharp;
+using SAGESharp.Animations;
 using SAGESharp.IO.Binary;
 using SharpDX;
+using ShoefitterDX.Models;
 using ShoefitterDX.Renderer;
 using ShoefitterDX.ToolWindows;
 using System;
@@ -60,6 +62,11 @@ namespace ShoefitterDX.Editors
         private List<string> SkeletonFilePaths { get; } = new List<string>();
         public Models.SkeletonModel Skeleton { get; }
 
+        public ObservableCollection<Models.AnimationModel> Animations { get; } = new ObservableCollection<Models.AnimationModel>();
+        public AnimationModel SelectedAnimation { get; set; } = null;
+        public float AnimationTime { get; set; }
+
+        private Matrix[] DefaultPose = new Matrix[255];
         private Matrix[] Pose = new Matrix[255]; // Each joint's local pose
         private Matrix[] WorldPose = new Matrix[255]; // Cumulative joint transforms in model space
 
@@ -76,6 +83,18 @@ namespace ShoefitterDX.Editors
             {
                 IBinaryReader reader = Reader.ForStream(stream);
                 return serializer.Read(reader);
+            }
+        }
+
+        private static BKD ReadBKDFile(string filename)
+        {
+            IBinarySerializer<BKD> serializer = BinarySerializer.ForBKDFiles;
+            using (FileStream stream = new FileStream(filename, FileMode.Open))
+            {
+                IBinaryReader reader = Reader.ForStream(stream);
+                BKD result = new BKD();
+                result.Read(reader);
+                return result;
             }
         }
 
@@ -111,11 +130,17 @@ namespace ShoefitterDX.Editors
                 this.Models.Add(new CharacterModel(childFile));
             }
 
+            foreach (string bkdFile in Directory.EnumerateFiles(item.FullPath, "*.bkd", SearchOption.AllDirectories))
+            {
+                Animations.Add(AnimationModel.FromBKD(ReadBKDFile(bkdFile), bkdFile));
+            }
+
             using (FileStream bhdStream = new FileStream(Path.Combine(item.FullPath, Path.GetFileName(item.FullPath) + ".bhd"), FileMode.Open))
             using (BinaryReader bhdReader = new BinaryReader(bhdStream))
             {
                 Skeleton = new Models.SkeletonModel(new SAGESharp.BHDFile(bhdReader), true);
                 Skeleton.WriteTransforms(Pose);
+                Skeleton.WriteTransforms(DefaultPose);
             }
 
             InitializeComponent();
@@ -216,7 +241,20 @@ namespace ShoefitterDX.Editors
 
         private void PreviewRenderer_UpdateContent(object sender, UpdateContentEventArgs e)
         {
+            AnimationTime += e.TimeStep;
 
+            if (SelectedAnimation != null)
+            {
+                if (SelectedAnimation.Duration > 0.0f)
+                {
+                    while (AnimationTime >= SelectedAnimation.Duration)
+                    {
+                        AnimationTime -= SelectedAnimation.Duration;
+                    }
+                }
+
+                SelectedAnimation.Evaluate(AnimationTime, DefaultPose, Pose);
+            }
         }
 
         private void PreviewRenderer_DisposeResources(object sender, EventArgs e)

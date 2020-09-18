@@ -145,6 +145,13 @@
             </TabItem>
             <TabItem Header="Animations">
                 <!-- TODO: Implement! -->
+                <ListBox ItemsSource="{Binding Animations}" SelectedItem="{Binding SelectedAnimation, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:AnimationModel}">
+                            <TextBlock Text="{Binding Filename}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </TabItem>
             <TabItem Header="Move List">
                 <!-- TODO: Implement!-->
