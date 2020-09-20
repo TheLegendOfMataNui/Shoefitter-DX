@@ -49,15 +49,17 @@ VS_OUT main(VS_IN input)
 	VS_OUT result;
 	
 	float4 skinnedPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 skinnedNormal = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	for (int i = 0; i < 4; i++)
 	{
 		int boneIndex = input.BoneIndices[i];
 		skinnedPosition += input.BoneWeights[i] * mul(JointPoses[boneIndex], mul(BindPoses[boneIndex], float4(input.Position, 1.0f)));
+		skinnedNormal += input.BoneWeights[i] * mul(JointPoses[boneIndex], mul(BindPoses[boneIndex], float4(input.Normal, 0.0f))); // HACK: Assumes uniform scale.
 	}
 	
 	result.Position = mul(Model, float4(skinnedPosition.xyz, 1.0f));
 	result.Position = mul(ProjectionMatrix, mul(ViewMatrix, result.Position));
-	result.Normal = mul(Model, float4(input.Normal, 0.0f)); // Assumes uniform scale
+	result.Normal = mul(Model, float4(normalize(skinnedNormal.xyz), 0.0f)); // Assumes uniform scale
 	result.UV = input.UV;
 	result.Color = input.Color;
 	

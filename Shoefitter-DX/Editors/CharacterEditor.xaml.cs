@@ -226,7 +226,7 @@ namespace ShoefitterDX.Editors
                 {
                     foreach (XPreviewSection section in model.Preview.Sections)
                     {
-                        PreviewRenderer.RenderSkinnedWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(0.0f/*-MathUtil.PiOverTwo*/), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture, model.Preview.BindPoseBuffer, WorldPose); // Matrix.RotationX(-MathUtil.PiOverTwo)
+                        PreviewRenderer.RenderSkinnedWorldMesh(section.Mesh, new WorldInstanceConstants(Matrix.RotationX(-MathUtil.PiOverTwo), section.Color, section.SpecularColor, section.SpecularExponent, section.EmissiveColor), section.DiffuseTexture, model.Preview.BindPoseBuffer, WorldPose); // Matrix.RotationX(-MathUtil.PiOverTwo)
                     }
                 }
             }
@@ -234,7 +234,7 @@ namespace ShoefitterDX.Editors
             PreviewRenderer.ImmediateContext.OutputMerger.DepthStencilState = PreviewRenderer.AlwaysDepthStencilState;
             foreach (Models.BoneModel bone in Skeleton.RootBones)
             {
-                this.RecursiveRenderBone(bone, Matrix.Identity);
+                this.RecursiveRenderBone(bone, Matrix.RotationX(-MathUtil.PiOverTwo));
             }
             PreviewRenderer.ImmediateContext.OutputMerger.DepthStencilState = PreviewRenderer.DefaultDepthStencilState;
         }
