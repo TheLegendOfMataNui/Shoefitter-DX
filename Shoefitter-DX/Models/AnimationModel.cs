@@ -328,6 +328,12 @@ namespace ShoefitterDX.Models
             result.Duration = bkd.Length;
             foreach (TransformAnimation transform in bkd.Entries)
             {
+                if (transform.BoneID == ushort.MaxValue)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WARNING]: BKD {filename} has a transform with a -1 Bone ID! Ignoring.");
+                    continue;
+                }
+
                 AnimationTrackModel track = new AnimationTrackModel();
                 track.BoneID = transform.BoneID;
 
