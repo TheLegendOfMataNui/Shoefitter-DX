@@ -61,6 +61,7 @@ namespace ShoefitterDX.Editors
 
         private List<string> SkeletonFilePaths { get; } = new List<string>();
         public Models.SkeletonModel Skeleton { get; }
+        public BoneModel SelectedBone => SkeletonTreeView.SelectedItem as BoneModel;
 
         public ObservableCollection<Models.AnimationModel> Animations { get; } = new ObservableCollection<Models.AnimationModel>();
         public AnimationModel SelectedAnimation { get; set; } = null;
@@ -190,7 +191,7 @@ namespace ShoefitterDX.Editors
         {
             Matrix combined = Pose[bone.ID] * parentTransform;
 
-            PreviewRenderer.RenderSolidMesh(this.AxisMesh, new SolidInstanceConstants(Matrix.Scaling(0.1f) * combined));
+            PreviewRenderer.RenderSolidMesh(this.AxisMesh, new SolidInstanceConstants(Matrix.Scaling(0.1f) * combined, Vector4.One));
 
             foreach (Models.BoneModel childBone in bone.Children)
             {
@@ -204,7 +205,7 @@ namespace ShoefitterDX.Editors
                 Matrix final = Matrix.Scaling(0.1f, 0.1f, childBone.Transform.TranslationVector.Length()) * look * combined;
                 Vector3 endpointParent = Vector3.TransformCoordinate(Vector3.UnitZ, final);
                 Vector3 endpointChild = (childBone.Transform * combined).TranslationVector;
-                PreviewRenderer.RenderSolidMesh(this.BoneMesh, new SolidInstanceConstants(final));
+                PreviewRenderer.RenderSolidMesh(this.BoneMesh, new SolidInstanceConstants(final, (bone == SelectedBone) ? Vector4.One : new Vector4(0.5f, 0.5f, 0.5f, 1.0f)));
 
                 this.RecursiveRenderBone(childBone, combined);
             }
@@ -216,7 +217,7 @@ namespace ShoefitterDX.Editors
             {
                 Vector3 center = ((Vector3)this.CylinderFile.Bounds.Max + (Vector3)this.CylinderFile.Bounds.Min) * 0.5f;
                 Vector3 size = (Vector3)this.CylinderFile.Bounds.Max - (Vector3)this.CylinderFile.Bounds.Min;
-                PreviewRenderer.RenderSolidMesh(this.CylinderMesh, new SolidInstanceConstants(Matrix.Scaling(size) * Matrix.Translation(center)));
+                PreviewRenderer.RenderSolidMesh(this.CylinderMesh, new SolidInstanceConstants(Matrix.Scaling(size) * Matrix.Translation(center), Vector4.One));
             }
 
             Skeleton.BakePose(Pose, WorldPose);

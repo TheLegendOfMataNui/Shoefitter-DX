@@ -30,6 +30,7 @@ cbuffer FrameConstants : register(b0)
 cbuffer WorldInstanceConstants : register(b1)
 {
 	float4x4 Model;
+	float4 Color;
 };
 
 VS_OUT main(VS_IN input)
@@ -40,7 +41,7 @@ VS_OUT main(VS_IN input)
 	result.Position = mul(ProjectionMatrix, mul(ViewMatrix, result.Position));
 	result.Normal = mul(Model, float4(input.Normal, 0.0f)); // Assumes uniform scale
 	result.UV = input.UV;
-	result.Color = input.Color;
+	result.Color = input.Color * Color;
 	
 	return result;
 }

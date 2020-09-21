@@ -60,5 +60,5 @@ float4 main(PS_IN input) : SV_Target
 		specular = pow(angle, exponent);
 	}
 
-	return float4(lambert * diffuseColor.xyz * input.Color.xyz * Color.xyz + specular * specularColor + EmissiveColor, diffuseColor.a * Color.a);
+	return float4(lambert * diffuseColor.xyz * input.Color.xyz + specular * specularColor + EmissiveColor, diffuseColor.a * Color.a);
 }

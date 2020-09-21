@@ -334,6 +334,8 @@ namespace ShoefitterDX.Models
                     continue;
                 }
 
+                //System.Diagnostics.Debug.WriteLine($"Animation for bone {transform.BoneID} + ({SAGESharp.BHDFile.NonBipedBoneNames[transform.BoneID]})");
+
                 AnimationTrackModel track = new AnimationTrackModel();
                 track.BoneID = transform.BoneID;
 

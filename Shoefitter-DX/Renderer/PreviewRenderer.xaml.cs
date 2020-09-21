@@ -79,10 +79,12 @@ namespace ShoefitterDX.Renderer
     public struct SolidInstanceConstants
     {
         public Matrix ModelMatrix;
+        public Vector4 Color;
 
-        public SolidInstanceConstants(Matrix modelMatrix)
+        public SolidInstanceConstants(Matrix modelMatrix, Vector4 color)
         {
             this.ModelMatrix = modelMatrix;
+            this.Color = color;
         }
     }
 
@@ -312,7 +314,7 @@ namespace ShoefitterDX.Renderer
             // Render the grid, if enabled
             if (ShowGrid)
             {
-                RenderSolidMesh(GridMesh, new SolidInstanceConstants(Matrix.Identity));
+                RenderSolidMesh(GridMesh, new SolidInstanceConstants(Matrix.Identity, Vector4.One));
             }
 
             // Copy the antialiased image to the non-antialiased backbuffer
