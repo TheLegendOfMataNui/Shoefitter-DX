@@ -148,7 +148,15 @@
                 <ListBox ItemsSource="{Binding Animations}" SelectedItem="{Binding SelectedAnimation, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:AnimationModel}">
-                            <TextBlock Text="{Binding Filename}" />
+                            <Grid>
+                                <Grid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Export..." Click="ExportAnimationMenuItem_Click" Tag="{Binding}" />
+                                        <MenuItem Header="Import..." Click="ImportAnimationMenuItem_Click" Tag="{Binding}" IsEnabled="False" />
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
+                                <TextBlock Text="{Binding Filename}" />
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

@@ -249,14 +249,11 @@ namespace ShoefitterDX.Models
 
         public Matrix Evaluate(float time, Matrix defaultPose)
         {
-            defaultPose.Decompose(out Vector3 defaultScale, out Quaternion defaultRotation, out Vector3 defaultTranslation);
-
             Vector3 translation = TranslationChannel.Evaluate(time) ?? Vector3.Zero;
             Quaternion rotation = RotationChannel.Evaluate(time) ?? Quaternion.Identity;
             rotation.Invert();
-            Vector3 scale = ScaleChannel.Evaluate(time) ?? Vector3.One;
-            return Matrix.Translation(translation) * Matrix.RotationQuaternion(rotation) * defaultPose; // * Matrix.Scaling(scale); // Matrix.Translation(translation) * 
-            //return Matrix.Transformation(Vector3.Zero, Quaternion.Identity, scale, Vector3.Zero, rotation, translation) * defaultPose;
+            //Vector3 scale = ScaleChannel.Evaluate(time) ?? Vector3.One;
+            return Matrix.Translation(translation) * Matrix.RotationQuaternion(rotation) * defaultPose; // TODO: Implement scale
         }
 
         #region INotifyPropertyChanged

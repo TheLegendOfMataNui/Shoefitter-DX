@@ -1,4 +1,5 @@
-﻿using SAGESharp;
+﻿using Microsoft.Win32;
+using SAGESharp;
 using SAGESharp.Animations;
 using SAGESharp.IO.Binary;
 using SharpDX;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -286,6 +288,42 @@ namespace ShoefitterDX.Editors
         private void OnSLBPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             this.NeedsSave = true;
+        }
+
+        private void ExportAnimationMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            CharacterModel character = Models.FirstOrDefault(model => System.IO.Path.GetFileNameWithoutExtension(model.Path) == Item.Name);
+
+            XFile model = null;
+            BHDFile skeleton = null;
+            BKD animation = null;
+
+            using (FileStream modelStream = new FileStream(character.Path, FileMode.Open))
+            using (BinaryReader modelReader = new BinaryReader(modelStream))
+            {
+                model = new XFile(modelReader);
+            }
+
+            using (FileStream skeletonStream = new FileStream(System.IO.Path.ChangeExtension(character.Path, ".bhd"), FileMode.Open))
+            using (BinaryReader skeletonReader = new BinaryReader(skeletonStream))
+            {
+                skeleton = new BHDFile(skeletonReader);
+            }
+
+            animation = ReadBKDFile(SelectedAnimation.Filename);
+
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "COLLADA Files (*.dae)|*.dae";
+            dialog.FileName = Path.GetFileNameWithoutExtension(SelectedAnimation.Filename);
+            if (dialog.ShowDialog() ?? false)
+            {
+                ColladaUtils.ExportCOLLADA(model, skeleton, animation, dialog.FileName, SharpDX.Matrix.RotationX(-SharpDX.MathUtil.PiOverTwo), true, ".dds", true);
+            }
+        }
+
+        private void ImportAnimationMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // TODO: Implement!
         }
     }
 }
