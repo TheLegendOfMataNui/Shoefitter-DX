@@ -206,7 +206,7 @@ namespace ShoefitterDX.Renderer
                 CullMode = CullMode.Back,
                 IsDepthClipEnabled = false,
                 FillMode = FillMode.Solid,
-                IsFrontCounterClockwise = false,
+                IsFrontCounterClockwise = true,
             });
             ImmediateContext.Rasterizer.State = DefaultRasterizerState;
 

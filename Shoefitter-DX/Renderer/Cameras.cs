@@ -62,7 +62,7 @@ namespace ShoefitterDX.Renderer
                 }
                 else
                 {
-                    return Matrix.Translation(-Position) * Matrix.RotationY(Yaw) * Matrix.RotationX(Pitch) * Matrix.Translation(0, 0, FocusDepth);
+                    return Matrix.Translation(-Position) * Matrix.RotationY(Yaw) * Matrix.RotationX(Pitch) * Matrix.Translation(0, 0, -FocusDepth);
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace ShoefitterDX.Renderer
         {
             get
             {
-                return Matrix.PerspectiveFovLH(FOV, AspectRatio, ZNear, ZFar);
+                return Matrix.PerspectiveFovRH(FOV, AspectRatio, ZNear, ZFar);
             }
         }
     }
@@ -193,8 +193,8 @@ namespace ShoefitterDX.Renderer
 
             if (IsOrbiting)
             {
-                Camera.Yaw += -dx * 3.0f;
-                Camera.Pitch += -dy * 4.0f;
+                Camera.Yaw += dx * 3.0f;
+                Camera.Pitch += dy * 4.0f;
 
                 if (Camera.Pitch > MathUtil.PiOverTwo)
                 {
@@ -289,8 +289,8 @@ namespace ShoefitterDX.Renderer
 
             if (IsRotating)
             {
-                Camera.Yaw += -dx * 3.0f;
-                Camera.Pitch += -dy * 4.0f;
+                Camera.Yaw += dx * 3.0f;
+                Camera.Pitch += dy * 4.0f;
 
                 if (Camera.Pitch > MathUtil.PiOverTwo)
                 {
