@@ -32,7 +32,8 @@ namespace ShoefitterDX
                 {
                     _allFileTypes = new List<FileType>
                     {
-                        new FileType(typeof(Editors.CharacterEditor), null, new Regex(@".*\\blockfiles\\characters\\\w\w\w\w\\?$", RegexOptions.Compiled))
+                        new FileType(typeof(Editors.CharacterEditor), null, new Regex(@".*\\blockfiles\\characters\\\w\w\w\w\\?$", RegexOptions.Compiled)), // Character directories
+                        new FileType(typeof(Editors.AreaEditor), null, new Regex(@".*\\blockfiles\\levels\\\w\w\w\w\\\w\w\w\w\\?$", RegexOptions.Compiled)) // Area directories
                     };
                 }
                 return _allFileTypes;

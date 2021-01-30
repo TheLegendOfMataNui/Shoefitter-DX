@@ -124,9 +124,9 @@ namespace ShoefitterDX.ToolWindows
         private List<Regex> IgnoreExpressions { get; } = new List<Regex>
         {
             new Regex(@".*\\\..*", RegexOptions.Compiled),
-            new Regex(@"\\build\\?", RegexOptions.Compiled),
-            new Regex(@"\\native\\?", RegexOptions.Compiled),
-            new Regex(@"\\tools\\?", RegexOptions.Compiled)
+            new Regex(@"\\build\\?", RegexOptions.Compiled), // Ignore the built output
+            new Regex(@"\\native\\?", RegexOptions.Compiled), // Ignore the native files
+            new Regex(@"\\tools\\?", RegexOptions.Compiled) // Ignore the build tools
         };
 
         public event EventHandler<DataBrowserItem> ItemDoubleClicked;

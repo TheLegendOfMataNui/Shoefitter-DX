@@ -137,6 +137,7 @@ namespace ShoefitterDX.Renderer
         public BlendState AlphaBlendState { get; private set; }
         public DepthStencilState DefaultDepthStencilState { get; private set; }
         public DepthStencilState AlwaysDepthStencilState { get; private set; }
+        public SamplerState WrapSamplerState { get; private set; }
         private FrameConstants FrameConstants;
         public SharpDX.Direct3D11.Buffer FrameConstantBuffer { get; private set; }
         public SharpDX.Direct3D11.Buffer SolidInstanceConstantBuffer { get; private set; }
@@ -225,6 +226,8 @@ namespace ShoefitterDX.Renderer
             DefaultDepthStencilState = new DepthStencilState(Device, new DepthStencilStateDescription() { DepthComparison = Comparison.Less, DepthWriteMask = DepthWriteMask.All, IsDepthEnabled = true });
             ImmediateContext.OutputMerger.DepthStencilState = DefaultDepthStencilState;
             AlwaysDepthStencilState = new DepthStencilState(Device, new DepthStencilStateDescription() { DepthComparison = Comparison.Always, DepthWriteMask = DepthWriteMask.All, IsDepthEnabled = false });
+            WrapSamplerState = new SamplerState(Device, new SamplerStateDescription() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, ComparisonFunction = Comparison.Always, Filter = Filter.Anisotropic, MaximumLod = Single.MaxValue });
+            ImmediateContext.PixelShader.SetSampler(0, WrapSamplerState);
 
             GridMesh = D3D11Mesh.CreateGrid(Device, 10, new Vector4(0.7f, 0.7f, 0.7f, 0.5f));
 
@@ -360,6 +363,8 @@ namespace ShoefitterDX.Renderer
             GridMesh?.Dispose();
             GridMesh = null;
 
+            WrapSamplerState?.Dispose();
+            WrapSamplerState = null;
             AlwaysDepthStencilState?.Dispose();
             AlwaysDepthStencilState = null;
             DefaultDepthStencilState?.Dispose();

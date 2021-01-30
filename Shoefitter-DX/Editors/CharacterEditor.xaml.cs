@@ -79,50 +79,19 @@ namespace ShoefitterDX.Editors
         private D3D11Mesh AxisMesh;
         private D3D11Mesh BoneMesh;
 
-        private static T ReadSLBFile<T>(string filename)
-        {
-            IBinarySerializer<T> serializer = BinarySerializer.ForType<T>();
-            using (FileStream stream = new FileStream(filename, FileMode.Open))
-            {
-                IBinaryReader reader = Reader.ForStream(stream);
-                return serializer.Read(reader);
-            }
-        }
-
-        private static BKD ReadBKDFile(string filename)
-        {
-            IBinarySerializer<BKD> serializer = BinarySerializer.ForBKDFiles;
-            using (FileStream stream = new FileStream(filename, FileMode.Open))
-            {
-                IBinaryReader reader = Reader.ForStream(stream);
-                BKD result = new BKD();
-                result.Read(reader);
-                return result;
-            }
-        }
-
-        private static void WriteSLBFile<T>(T slb, string filename)
-        {
-            IBinarySerializer<T> serializer = BinarySerializer.ForType<T>();
-            using (FileStream stream = new FileStream(filename, FileMode.Create))
-            {
-                IBinaryWriter writer = Writer.ForStream(stream);
-                serializer.Write(writer, slb);
-            }
-        }
 
         public CharacterEditor(DataBrowserItem item) : base(item)
         {
             if (File.Exists(this.CylinderFilePath))
             {
-                this.CylinderFile = ReadSLBFile<SAGESharp.SLB.Cylinder>(this.CylinderFilePath);
+                this.CylinderFile = Utils.ReadSLBFile<SAGESharp.SLB.Cylinder>(this.CylinderFilePath);
                 this.CylinderFile.PropertyChanged += OnSLBPropertyChanged;
                 this.CylinderFile.Bounds.PropertyChanged += OnSLBPropertyChanged;
             }
 
             if (File.Exists(this.AIInfoFilePath))
             {
-                this.AIInfoFile = ReadSLBFile<SAGESharp.SLB.AIInfo>(this.AIInfoFilePath);
+                this.AIInfoFile = Utils.ReadSLBFile<SAGESharp.SLB.AIInfo>(this.AIInfoFilePath);
                 this.AIInfoFile.PropertyChanged += OnSLBPropertyChanged;
                 this.AIInfoFile.TimerValuesIdle.PropertyChanged += OnSLBPropertyChanged;
                 this.AIInfoFile.TimerValuesPatrol.PropertyChanged += OnSLBPropertyChanged;
@@ -135,7 +104,7 @@ namespace ShoefitterDX.Editors
 
             foreach (string bkdFile in Directory.EnumerateFiles(item.FullPath, "*.bkd", SearchOption.AllDirectories))
             {
-                Animations.Add(AnimationModel.FromBKD(ReadBKDFile(bkdFile), bkdFile));
+                Animations.Add(AnimationModel.FromBKD(Utils.ReadBKDFile(bkdFile), bkdFile));
             }
 
             using (FileStream bhdStream = new FileStream(Path.Combine(item.FullPath, Path.GetFileName(item.FullPath) + ".bhd"), FileMode.Open))
@@ -279,8 +248,8 @@ namespace ShoefitterDX.Editors
 
         public override void Save()
         {
-            WriteSLBFile(this.CylinderFile, this.CylinderFilePath);
-            WriteSLBFile(this.AIInfoFile, this.AIInfoFilePath);
+            Utils.WriteSLBFile(this.CylinderFile, this.CylinderFilePath);
+            Utils.WriteSLBFile(this.AIInfoFile, this.AIInfoFilePath);
 
             base.Save();
         }
@@ -310,7 +279,7 @@ namespace ShoefitterDX.Editors
                 skeleton = new BHDFile(skeletonReader);
             }
 
-            animation = ReadBKDFile(SelectedAnimation.Filename);
+            animation = Utils.ReadBKDFile(SelectedAnimation.Filename);
 
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.Filter = "COLLADA Files (*.dae)|*.dae";
