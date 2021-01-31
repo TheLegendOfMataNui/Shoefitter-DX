@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:ShoefitterDX.Editors"
              xmlns:renderer="clr-namespace:ShoefitterDX.Renderer"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
@@ -16,7 +16,103 @@
 
         <TabControl>
             <TabItem Header="Objects">
-                
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ListBox ItemsSource="{Binding Objects}" SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:AreaObject}">
+                                <TextBlock Text="{Binding ObjectID}" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="4px" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Model ID" />
+                        <TextBox Grid.Column="2" Text="{Binding SelectedObject.ObjectID, Mode=TwoWay}" />
+
+                        <TextBlock Grid.Row="1" Text="Location" />
+                        <Grid Grid.Row="1" Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Text="{Binding SelectedObject.Position.X, Mode=TwoWay}" />
+                            <TextBox Grid.Column="1" Text="{Binding SelectedObject.Position.Y, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Text="{Binding SelectedObject.Position.Z, Mode=TwoWay}" />
+                        </Grid>
+
+                        <TextBlock Grid.Row="2" Text="Orientation" />
+                        <Grid Grid.Row="2" Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Text="{Binding SelectedObject.Rotation.X, Mode=TwoWay}" />
+                            <TextBox Grid.Column="1" Text="{Binding SelectedObject.Rotation.Y, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Text="{Binding SelectedObject.Rotation.Z, Mode=TwoWay}" />
+                        </Grid>
+
+                        <TextBlock Grid.Row="3" Text="Bounding Box Corners" />
+                        <Grid Grid.Row="3" Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <TextBox Text="{Binding SelectedObject.BoundsMin.X, Mode=TwoWay}" />
+                            <TextBox Grid.Column="1" Text="{Binding SelectedObject.BoundsMin.Y, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Text="{Binding SelectedObject.BoundsMin.Z, Mode=TwoWay}" />
+
+                            <TextBox Grid.Row="1" Text="{Binding SelectedObject.BoundsMax.X, Mode=TwoWay}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedObject.BoundsMax.Y, Mode=TwoWay}" />
+                            <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding SelectedObject.BoundsMax.Z, Mode=TwoWay}" />
+                        </Grid>
+
+                        <TextBlock Grid.Row="4" Text="Physics Type" />
+                        <ComboBox Grid.Row="4" Grid.Column="2" SelectedValue="{Binding SelectedObject.PhysicsType, Mode=TwoWay, Converter={StaticResource ObjectPhysicsTypeEnumConverter}}" SelectedValuePath="Content">
+                            <ComboBoxItem Content="Static" />
+                            <ComboBoxItem Content="StaticDoubleSided" />
+                            <ComboBoxItem Content="StaticTransparent" />
+                            <ComboBoxItem Content="Dynamic" />
+                        </ComboBox>
+
+                        <TextBlock Grid.Row="5" Text="Collision Shape" />
+                        <ComboBox Grid.Row="5" Grid.Column="2" SelectedValue="{Binding SelectedObject.CollisionShape, Mode=TwoWay, Converter={StaticResource ObjectCollisionShapeEnumConverter}}" SelectedValuePath="Content">
+                            <ComboBoxItem Content="None" />
+                            <ComboBoxItem Content="Box" />
+                            <ComboBoxItem Content="Cylinder" />
+                            <ComboBoxItem Content="Sphere" />
+                        </ComboBox>
+                    </Grid>
+                </Grid>
             </TabItem>
         </TabControl>
 

@@ -7,6 +7,9 @@
         xmlns:editors="clr-namespace:ShoefitterDX.Editors"
         mc:Ignorable="d"
         Title="Shoefitter DX" Height="450" Width="800" DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <Window.CommandBindings>
+        <CommandBinding Command="Save" CanExecute="SaveCommand_CanExecute" Executed="SaveCommand_Executed" />
+    </Window.CommandBindings>
     <Grid>
         <DockingManager x:Name="DockingManager">
             <DockingManager.DocumentHeaderTemplate>

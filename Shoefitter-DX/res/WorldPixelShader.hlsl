@@ -41,7 +41,8 @@ float4 main(PS_IN input) : SV_Target
 	float3 normal = normalize(input.Normal);
 	float3 toLight = float3(0.0f, 1.0f, 0.0f);
 	//float lambert = saturate(dot(toLight, normal)); // Real version
-	float lambert = dot(toLight, normal) * 0.5f + 0.5f; // Faked version to add some ambient illumination
+	//float lambert = dot(toLight, normal) * 0.5f + 0.5f; // Faked version to add some ambient illumination
+	float lambert = 1.0f;
 	float specular = 0.0f;
 	float3 specularColor = SpecularColor;
 	float exponent = SpecularExponent;

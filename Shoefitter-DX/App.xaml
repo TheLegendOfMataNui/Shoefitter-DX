@@ -3,10 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ShoefitterDX"
              xmlns:slb="clr-namespace:SAGESharp.SLB;assembly=SAGESharp"
+             xmlns:editors="clr-namespace:ShoefitterDX.Editors"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <local:IdentifierConverter x:Key="IdentifierConverter" />
         <local:EnumConverter x:Key="AttackTypeEnumConverter" EnumType="{x:Type slb:AttackType}" />
+        <local:EnumConverter x:Key="ObjectPhysicsTypeEnumConverter" EnumType="{x:Type editors:ObjectPhysicsType}" />
+        <local:EnumConverter x:Key="ObjectCollisionShapeEnumConverter" EnumType="{x:Type editors:ObjectCollisionShape}" />
 
         <SolidColorBrush x:Key="Accent" Color="#EE7766" />
     </Application.Resources>

@@ -80,5 +80,23 @@ namespace ShoefitterDX
             doc.IsActive = true;
             doc.IsSelected = true;
         }
+
+        private void SaveCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (DockingManager.ActiveContent is EditorBase editor)
+            {
+                e.CanExecute = editor.NeedsSave;
+                e.Handled = true;
+            }
+        }
+
+        private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (DockingManager.ActiveContent is EditorBase editor)
+            {
+                editor.Save();
+                e.Handled = true;
+            }
+        }
     }
 }

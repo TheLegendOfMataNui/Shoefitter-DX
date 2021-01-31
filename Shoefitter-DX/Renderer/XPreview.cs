@@ -236,7 +236,7 @@ namespace ShoefitterDX.Renderer
                         }
                     }
 
-                    sections.Add(new XPreviewSection(D3D11Mesh.Create(device, sectionVertices[i].ToArray(), sectionIndices[i].ToArray(), SharpDX.Direct3D.PrimitiveTopology.TriangleList), XUtils.ColorRGBA(faceColor), specExponent, XUtils.ColorRGB(specularColor), XUtils.ColorRGB(emissiveColor), texture));
+                    sections.Add(new XPreviewSection(D3D11Mesh.Create(device, sectionVertices[i].ToArray(), sectionIndices[i].ToArray(), SharpDX.Direct3D.PrimitiveTopology.TriangleList), XUtils.ColorRGBA(faceColor), specExponent, XUtils.ColorRGB(specularColor), /*XUtils.ColorRGB(emissiveColor)*/ Vector3.Zero, texture));
                 }
             }
 

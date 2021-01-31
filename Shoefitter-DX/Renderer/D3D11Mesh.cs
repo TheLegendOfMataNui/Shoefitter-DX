@@ -70,6 +70,31 @@ namespace ShoefitterDX.Renderer
             return D3D11Mesh.Create(device, vertices.ToArray(), indices.ToArray(), SharpDX.Direct3D.PrimitiveTopology.LineList);
         }
 
+        public static D3D11Mesh CreateCube(Device device, Vector4 color)
+        {
+            return D3D11Mesh.Create(device, new PreviewVertex[] {
+                new PreviewVertex(new Vector3(0.5f, 0.5f, 0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.5f, 0.5f, -0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.5f, -0.5f, 0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(0.5f, -0.5f, -0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(-0.5f, 0.5f, 0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(-0.5f, 0.5f, -0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(-0.5f, -0.5f, 0.5f), Vector3.Zero, Vector2.Zero, color),
+                new PreviewVertex(new Vector3(-0.5f, -0.5f, -0.5f), Vector3.Zero, Vector2.Zero, color) }, new uint[] {
+                0, 1,
+                1, 3,
+                3, 2,
+                2, 0,
+                4, 5,
+                5, 7,
+                7, 6,
+                6, 4,
+                0, 4,
+                1, 5,
+                2, 6,
+                3, 7 }, SharpDX.Direct3D.PrimitiveTopology.LineList);
+        }
+
         private static readonly Vector4 Red = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
         private static readonly Vector4 Green = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         private static readonly Vector4 Blue = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);

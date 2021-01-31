@@ -2,11 +2,81 @@
 using SAGESharp.IO.Binary;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 
 namespace ShoefitterDX
 {
+    public class VectorModel : INotifyPropertyChanged
+    {
+        private float x;
+        public float X
+        {
+            get => x;
+            set
+            {
+                x = value;
+                RaisePropertyChanged(nameof(X));
+            }
+        }
+
+        private float y;
+        public float Y
+        {
+            get => y;
+            set
+            {
+                y = value;
+                RaisePropertyChanged(nameof(Y));
+            }
+        }
+
+        private float z;
+        public float Z
+        {
+            get => z;
+            set
+            {
+                z = value;
+                RaisePropertyChanged(nameof(Z));
+            }
+        }
+
+        public VectorModel()
+        {
+
+        }
+
+        public VectorModel(float x, float y, float z)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+        }
+
+        public void Load(SharpDX.Vector3 vector)
+        {
+            X = vector.X;
+            Y = vector.Y;
+            Z = vector.Z;
+        }
+
+        public static implicit operator SharpDX.Vector3(VectorModel vector)
+        {
+            return new SharpDX.Vector3(vector.X, vector.Y, vector.Z);
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void RaisePropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
+
     public static class Utils
     {
         public static T ReadSLBFile<T>(string filename)
