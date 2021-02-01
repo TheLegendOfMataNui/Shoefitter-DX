@@ -73,7 +73,7 @@ namespace ShoefitterDX.Editors
             }
         }
 
-        public SharpDX.Matrix Transform => SharpDX.Matrix.Translation(Position);
+        public SharpDX.Matrix Transform => SharpDX.Matrix.RotationY(SharpDX.MathUtil.DegreesToRadians(Rotation.Y)) * SharpDX.Matrix.RotationX(SharpDX.MathUtil.DegreesToRadians(Rotation.X)) * SharpDX.Matrix.RotationZ(SharpDX.MathUtil.DegreesToRadians(Rotation.Z)) * SharpDX.Matrix.Translation(Position);
 
         public Renderer.XPreview ModelPreview { get; private set; }
         private string AreaDirectory { get; }
