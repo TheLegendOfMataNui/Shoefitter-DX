@@ -48,7 +48,7 @@
                         <TextBlock Text="Model ID" />
                         <TextBox Grid.Column="2" Text="{Binding SelectedObject.ObjectID, Mode=TwoWay}" />
 
-                        <TextBlock Grid.Row="1" Text="Location" />
+                        <TextBlock Grid.Row="1" Text="Position" />
                         <Grid Grid.Row="1" Grid.Column="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
@@ -61,7 +61,7 @@
                             <TextBox Grid.Column="2" Text="{Binding SelectedObject.Position.Z, Mode=TwoWay}" />
                         </Grid>
 
-                        <TextBlock Grid.Row="2" Text="Orientation" />
+                        <TextBlock Grid.Row="2" Text="Rotation" />
                         <Grid Grid.Row="2" Grid.Column="2">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
@@ -111,6 +111,42 @@
                             <ComboBoxItem Content="Cylinder" />
                             <ComboBoxItem Content="Sphere" />
                         </ComboBox>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Lights">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ListBox>
+                        
+                    </ListBox>
+
+                    <Grid Grid.Row="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="4px" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Light ID" />
+                        <TextBox Grid.Column="2" />
+
+                        <TextBlock Grid.Row="1" Text="Position" />
+
+                        <TextBlock Grid.Row="2" Text="Direction" />
+
+                        <TextBlock Grid.Row="3" Text="Intensity" />
                     </Grid>
                 </Grid>
             </TabItem>
