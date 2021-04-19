@@ -66,14 +66,20 @@ namespace ShoefitterDX.Editors
         public BoneModel SelectedBone => SkeletonTreeView.SelectedItem as BoneModel;
 
         public ObservableCollection<Models.AnimationModel> Animations { get; } = new ObservableCollection<Models.AnimationModel>();
-        public AnimationModel SelectedAnimation { get; set; } = null;
-        public float AnimationTime { get; set; }
+        public static DependencyProperty SelectedAnimationProperty = DependencyProperty.Register(nameof(SelectedAnimation), typeof(AnimationModel), typeof(CharacterEditor), new PropertyMetadata(CharacterEditor.SelectedAnimationPropertyChanged));
+        public AnimationModel SelectedAnimation
+        {
+            get => (AnimationModel)this.GetValue(SelectedAnimationProperty);
+            set => this.SetValue(SelectedAnimationProperty, value);
+        }
+        //public float AnimationTime { get; set; }
 
         private Matrix[] DefaultPose = new Matrix[255];
         private Matrix[] Pose = new Matrix[255]; // Each joint's local pose
         private Matrix[] WorldPose = new Matrix[255]; // Cumulative joint transforms in model space
 
         public ObservableCollection<CharacterModel> Models { get; } = new ObservableCollection<CharacterModel>();
+        public TimelineContext AnimationTimelineContext { get; private set; } = null;
 
         private D3D11Mesh CylinderMesh;
         private D3D11Mesh AxisMesh;
@@ -123,6 +129,21 @@ namespace ShoefitterDX.Editors
             PreviewRenderer.DisposeResources += PreviewRenderer_DisposeResources;
 
             this.Unloaded += CharacterEditor_Unloaded;
+            this.IsKeyboardFocusWithinChanged += (sender, e) =>
+            {
+                if (this.IsKeyboardFocusWithin && this.AnimationTimelineContext != null)
+                {
+                    MainWindow.Instance.Timeline.Context = this.AnimationTimelineContext;
+                }
+            };
+        }
+
+        private void AnimationTimelineContext_FrameChange(object sender, int e)
+        {
+            if (this.SelectedAnimation != null)
+            {
+                SelectedAnimation.Evaluate(AnimationTimelineContext.CurrentTime, DefaultPose, Pose);
+            }
         }
 
         private void CharacterEditor_Unloaded(object sender, RoutedEventArgs e)
@@ -213,7 +234,7 @@ namespace ShoefitterDX.Editors
 
         private void PreviewRenderer_UpdateContent(object sender, UpdateContentEventArgs e)
         {
-            AnimationTime += e.TimeStep;
+            /*AnimationTime += e.TimeStep;
 
             if (SelectedAnimation != null)
             {
@@ -226,7 +247,7 @@ namespace ShoefitterDX.Editors
                 }
 
                 SelectedAnimation.Evaluate(AnimationTime, DefaultPose, Pose);
-            }
+            }*/
         }
 
         private void PreviewRenderer_DisposeResources(object sender, EventArgs e)
@@ -293,6 +314,28 @@ namespace ShoefitterDX.Editors
         private void ImportAnimationMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Implement!
+        }
+
+        private static void SelectedAnimationPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is CharacterEditor editor && e.OldValue != e.NewValue)
+            {
+                if (e.NewValue is AnimationModel animation)
+                {
+                    bool startPlaying = !editor.AnimationTimelineContext?.IsPaused ?? false;
+                    editor.AnimationTimelineContext?.Pause();
+                    editor.AnimationTimelineContext = new TimelineContext(0, (int)(animation.Duration * BKD.FRAMES_PER_SECOND), 1.0f / BKD.FRAMES_PER_SECOND, editor.Item.Name + " - " + System.IO.Path.GetFileName(animation.Filename));
+                    editor.AnimationTimelineContext.FrameChange += editor.AnimationTimelineContext_FrameChange;
+                    if (startPlaying)
+                    {
+                        editor.AnimationTimelineContext.Play();
+                    }
+                    if (editor.IsKeyboardFocusWithin)
+                    {
+                        MainWindow.Instance.Timeline.Context = editor.AnimationTimelineContext;
+                    }
+                }
+            }
         }
     }
 }

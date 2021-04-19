@@ -10,7 +10,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="Save" CanExecute="SaveCommand_CanExecute" Executed="SaveCommand_Executed" />
     </Window.CommandBindings>
-    <Grid>
+    <Grid Margin="5 5 5 3">
         <DockingManager x:Name="DockingManager">
             <DockingManager.DocumentHeaderTemplate>
                 <DataTemplate DataType="{x:Type editors:EditorDocument}">

@@ -12,5 +12,43 @@
         <local:EnumConverter x:Key="ObjectCollisionShapeEnumConverter" EnumType="{x:Type editors:ObjectCollisionShape}" />
 
         <SolidColorBrush x:Key="Accent" Color="#EE7766" />
+        
+        <!-- Icons -->
+        <DrawingImage x:Key="PauseIcon_x24">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent" Geometry="m 0 0 h 24 v 24 H 0 Z" />
+                    <GeometryDrawing Brush="#FFF1F1F1" Geometry="m 6 5 v 14 h 5 V 5 Z m 7 0 v 14 h 5 V 5 Z" />
+                    <GeometryDrawing Brush="#FF2D2D30" Geometry="m 7 6 v 12 h 3 V 6 Z m 7 0 v 12 h 3 V 6 Z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+        <DrawingImage x:Key="PlayIcon_x24">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent" Geometry="m 0 0 h 24 v 24 H 0 Z" />
+                    <GeometryDrawing Brush="#FFF1F1F1" Geometry="m 7 4.23425 v 16.68554 l 12.835938 -7.98437 z" />
+                    <GeometryDrawing Brush="#FF2D2D30" Geometry="m 8 6 v 13 l 10 -6 z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+        <DrawingImage x:Key="SkipToBeginningIcon_x24">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent" Geometry="m 0 0 h 24 v 24 H 0 Z" />
+                    <GeometryDrawing Brush="#FFF1F1F1" Geometry="m 19 7.23437 v 9.53125 l -5 -3 v 3 l -5 -3 v 2.23438 H 5 v -8 h 4 v 2.23437 l 5 -3 v 3 z" />
+                    <GeometryDrawing Brush="#FF2D2D30" Geometry="m 18 9 v 6 l -5 -3 z m -5 3 v 3 l -5 -3 5 -3 z m -5 0 v 3 H 6 v -6 h 2 z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+        <DrawingImage x:Key="SkipToEndIcon_x24">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="Transparent" Geometry="m 0 0 h 24 v 24 H 0 Z" />
+                    <GeometryDrawing Brush="#FFF1F1F1" Geometry="m 5 7.23437 v 9.53125 l 5 -3 v 3 l 5 -3 v 2.23438 h 4 v -8 h -4 v 2.23437 l -5 -3 v 3 z" />
+                    <GeometryDrawing Brush="#FF2D2D30" Geometry="m 6 9 v 6 l 5 -3 z m 5 3 v 3 l 5 -3 -5 -3 z m 5 0 v 3 h 2 v -6 h -2 z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
     </Application.Resources>
 </Application>

@@ -30,17 +30,36 @@ namespace ShoefitterDX
 
         public Context Context { get; } = new Context();
         public DataBrowser DataBrowser { get; }
+        public Timeline Timeline { get; }
+
+        public static MainWindow Instance { get; private set; }
 
         public MainWindow()
         {
+            MainWindow.Instance = this;
+
             InitializeComponent();
 
             Config = new SAGESharp.INIConfig(ConfigFilename);
             Context.ProjectDirectory = Config.GetValueOrDefault("Context", "ProjectDirectory", @"E:\Projects\Modding\Bionicle\My-Code\LOMN-Beta\");
 
+            DockingManager.Layout.RootPanel = new LayoutPanel() { Orientation = Orientation.Horizontal };
+
+            LayoutPanel innerPanel = new LayoutPanel();
+            innerPanel.Orientation = Orientation.Vertical;
+            innerPanel.Children.Add(new LayoutDocumentPane());
+            DockingManager.Layout.RootPanel.Children.Add(innerPanel);
+
+            this.Timeline = new Timeline();
+            LayoutAnchorablePane timelinePane = new LayoutAnchorablePane();
+            timelinePane.DockHeight = new GridLength(1, GridUnitType.Auto);
+            LayoutAnchorable timelineAnchorble = new LayoutAnchorable() { Content = this.Timeline, CanDockAsTabbedDocument = false };
+            BindingOperations.SetBinding(timelineAnchorble, LayoutContent.TitleProperty, new Binding("Content.Context.Label") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+            timelinePane.Children.Add(timelineAnchorble);
+            innerPanel.Children.Add(timelinePane);
+
             this.DataBrowser = new DataBrowser(this.Context);
             this.DataBrowser.ItemDoubleClicked += DataBrowser_ItemDoubleClicked;
-
             LayoutAnchorablePane rightPane = new LayoutAnchorablePane();
             rightPane.DockWidth = new GridLength(200);
             rightPane.Children.Add(new LayoutAnchorable() { Content = this.DataBrowser, Title = "Data Browser" });
